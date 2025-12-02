@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Client } from '../types';
 import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface ClientListProps {
   clients: Client[];
@@ -68,30 +69,21 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
       return;
     }
 
-    const headers = ['ID', 'Empresa', 'Tipo Produto', 'Cidade', 'Tipo Cobrança', 'Prazo Pagamento', 'Contato'];
-    const csvRows = [
-      headers.join(','),
-      ...filteredClients.map(client => [
-        `"${client.id}"`,
-        `"${client.companyName}"`,
-        `"${client.productType}"`,
-        `"${client.city}"`,
-        `"${client.paymentType}"`,
-        `"${client.paymentTerm}"`,
-        `"${client.contact}"`
-      ].join(','))
-    ];
+    const dataToExport = filteredClients.map(client => ({
+      'ID': client.id,
+      'Empresa': client.companyName,
+      'Tipo Produto': client.productType,
+      'Cidade': client.city,
+      'Tipo Cobrança': client.paymentType,
+      'Prazo Pagamento': client.paymentTerm,
+      'Contato': client.contact
+    }));
 
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `export_clientes_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+
+    XLSX.writeFile(workbook, `export_clientes_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (

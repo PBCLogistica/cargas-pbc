@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord } from '../types';
 import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface LoadListProps {
   loads: Load[];
@@ -143,37 +144,28 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
       return;
     }
 
-    const headers = ['ID', 'Data Emissão', 'Cliente', 'Origem', 'Destino', 'Motorista', 'Placa Cavalo', 'Placa Carreta', 'Peso (kg)', 'Valor Empresa', 'Valor Motorista', 'Pedágio', 'Status', 'Observação'];
-    const csvRows = [
-      headers.join(','),
-      ...filteredLoads.map(load => [
-        `"${load.id}"`,
-        `"${load.date}"`,
-        `"${load.client}"`,
-        `"${load.origin}"`,
-        `"${load.destination}"`,
-        `"${load.driver}"`,
-        `"${load.truckPlate}"`,
-        `"${load.trailerPlate}"`,
-        load.weight,
-        load.companyValue,
-        load.driverValue,
-        load.toll,
-        `"${load.status}"`,
-        `"${load.observation.replace(/"/g, '""')}"`
-      ].join(','))
-    ];
+    const dataToExport = filteredLoads.map(load => ({
+      'ID': load.id,
+      'Data Emissão': load.date,
+      'Cliente': load.client,
+      'Origem': load.origin,
+      'Destino': load.destination,
+      'Motorista': load.driver,
+      'Placa Cavalo': load.truckPlate,
+      'Placa Carreta': load.trailerPlate,
+      'Peso (kg)': load.weight,
+      'Valor Empresa': load.companyValue,
+      'Valor Motorista': load.driverValue,
+      'Pedágio': load.toll,
+      'Status': load.status,
+      'Observação': load.observation
+    }));
 
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `export_cargas_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Cargas");
+
+    XLSX.writeFile(workbook, `export_cargas_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (

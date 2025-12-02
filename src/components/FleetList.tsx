@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FleetRecord } from '../types';
 import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface FleetListProps {
   records: FleetRecord[];
@@ -64,30 +65,21 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
       return;
     }
 
-    const headers = ['ID', 'Motorista', 'Placa Cavalo', 'Placa Carreta', 'Tipo Veículo', 'Vínculo', 'Capacidade (kg)'];
-    const csvRows = [
-      headers.join(','),
-      ...filteredRecords.map(rec => [
-        `"${rec.id}"`,
-        `"${rec.driverName}"`,
-        `"${rec.truckPlate}"`,
-        `"${rec.trailerPlate}"`,
-        `"${rec.truckType}"`,
-        `"${rec.ownershipType}"`,
-        rec.capacity
-      ].join(','))
-    ];
+    const dataToExport = filteredRecords.map(rec => ({
+      'ID': rec.id,
+      'Motorista': rec.driverName,
+      'Placa Cavalo': rec.truckPlate,
+      'Placa Carreta': rec.trailerPlate,
+      'Tipo Veículo': rec.truckType,
+      'Vínculo': rec.ownershipType,
+      'Capacidade (kg)': rec.capacity
+    }));
 
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `export_frota_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Frota");
+
+    XLSX.writeFile(workbook, `export_frota_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (
