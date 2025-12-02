@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, ComposedChart, Line, AreaChart, Area, Legend 
@@ -12,6 +12,9 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
+  // --- State for Editable Goal ---
+  const [monthlyGoal, setMonthlyGoal] = useState(50000);
+
   // --- Basic Calculations ---
   const totalRevenue = loads.reduce((acc, load) => acc + load.companyValue, 0);
   const activeLoads = loads.filter(l => l.status === LoadStatus.IN_TRANSIT).length;
@@ -20,9 +23,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
 
   // --- Report 1: Fleet vs Third Party Revenue ---
   const revenueByOwnership = loads.reduce((acc, load) => {
-    // Find driver in fleet records
     const driverRecord = fleet.find(f => f.driverName === load.driver);
-    // If found and ownership is 'Frota', categorize as Frota, otherwise Terceiro
     const type = driverRecord?.ownershipType === 'Frota' ? 'Frota Própria' : 'Terceiros';
     
     const existing = acc.find(item => item.name === type);
@@ -50,8 +51,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   .slice(0, 5);
 
   // --- Report 3: Monthly Revenue vs Meta ---
-  // Mocking previous months for demonstration since mock data is single-month
-  const monthlyGoal = 50000; // Static Goal Example
   const revenueVsGoalData = [
     { name: 'Jul', receita: 32000, meta: monthlyGoal },
     { name: 'Ago', receita: 38000, meta: monthlyGoal },
@@ -59,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
     { name: 'Out', receita: totalRevenue, meta: monthlyGoal }, // Current Month
   ];
   
-  const percentReached = (totalRevenue / monthlyGoal) * 100;
+  const percentReached = monthlyGoal > 0 ? (totalRevenue / monthlyGoal) * 100 : 0;
 
   // --- Report 4: Monthly Variation (Simulated Trend) ---
   const variationData = [
@@ -121,12 +120,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
         
         {/* 2. Monthly Revenue vs Goal (Composed Chart) */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <Target size={20} className="text-indigo-600"/>
                 Faturamento Mensal x Meta
              </h3>
-             <span className="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded-lg">Últimos 4 meses</span>
+             <div className="flex items-center gap-2">
+                <label htmlFor="goal" className="text-sm font-medium text-slate-600 shrink-0">Definir Meta:</label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
+                    <input
+                        id="goal"
+                        type="number"
+                        value={monthlyGoal}
+                        onChange={(e) => setMonthlyGoal(Number(e.target.value) || 0)}
+                        className="w-36 pl-8 pr-2 py-1.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                </div>
+            </div>
           </div>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
