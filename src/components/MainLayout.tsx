@@ -8,6 +8,7 @@ import { DailyRatesList } from './DailyRatesList';
 import { TrackingView } from './TrackingView';
 import { FreightCalculator } from './FreightCalculator';
 import { AIAssistant } from './AIAssistant';
+import { Settings } from './Settings';
 import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES } from '../constants';
 import { ViewState, FleetRecord, Client, DailyRateRecord, Load } from '../types';
 import { Menu, Bell } from 'lucide-react';
@@ -21,11 +22,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Lifted state
+  // User Profile State
+  const [userName, setUserName] = useState('Admin Usuário');
+  const [userAvatar, setUserAvatar] = useState('https://picsum.photos/100/100');
+
+  // Lifted state for app data
   const [loads, setLoads] = useState<Load[]>(MOCK_LOADS);
   const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>(MOCK_FLEET);
   const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
   const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>(MOCK_DAILY_RATES);
+
+  const handleProfileUpdate = (newName: string, newAvatar: string) => {
+    setUserName(newName);
+    setUserAvatar(newAvatar);
+  };
 
   const handleAddLoad = (newLoad: Load) => {
     setLoads([newLoad, ...loads]);
@@ -78,14 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'assistant':
         return <AIAssistant loads={loads} />;
       case 'settings':
-        return (
-          <div className="flex items-center justify-center h-full text-slate-400">
-            <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Configurações</h2>
-                <p>Funcionalidade em desenvolvimento.</p>
-            </div>
-          </div>
-        );
+        return <Settings currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
       default:
         return <Dashboard loads={loads} fleet={fleetRecords} />;
     }
@@ -135,11 +138,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
             
             <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">Admin Usuário</p>
+                <p className="text-sm font-semibold text-slate-900">{userName}</p>
                 <p className="text-xs text-slate-500">Gerente de Logística</p>
               </div>
               <div className="w-9 h-9 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden">
-                 <img src="https://picsum.photos/100/100" alt="Avatar" className="w-full h-full object-cover" />
+                 <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
