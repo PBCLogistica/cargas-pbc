@@ -1,43 +1,47 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord } from '../types';
-import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download } from 'lucide-react';
+import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface LoadListProps {
   loads: Load[];
   fleet: FleetRecord[];
   onAddLoad: (load: Load) => void;
+  onUpdateLoad: (load: Load) => void;
   onDeleteLoad: (id: string) => void;
 }
 
-export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onDeleteLoad }) => {
+const emptyForm: Partial<Load> = {
+  date: new Date().toISOString().split('T')[0],
+  client: '',
+  origin: '',
+  destination: '',
+  driver: '',
+  vehicleType: '',
+  truckPlate: '',
+  trailerPlate: '',
+  weight: 0,
+  companyValue: 0,
+  driverValue: 0,
+  finalValue: 0,
+  toll: 0,
+  adValorem: 0,
+  icms: true,
+  pisConfins: true,
+  forecastDate: '',
+  deliveryDate: '',
+  status: LoadStatus.PENDING,
+  observation: ''
+};
+
+export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onUpdateLoad, onDeleteLoad }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<LoadStatus | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLoad, setEditingLoad] = useState<Load | null>(null);
 
   // Form State
-  const [formData, setFormData] = useState<Partial<Load>>({
-    date: new Date().toISOString().split('T')[0],
-    client: '',
-    origin: '',
-    destination: '',
-    driver: '',
-    vehicleType: '',
-    truckPlate: '',
-    trailerPlate: '',
-    weight: 0,
-    companyValue: 0,
-    driverValue: 0,
-    finalValue: 0,
-    toll: 0,
-    adValorem: 0,
-    icms: true,
-    pisConfins: true,
-    forecastDate: '',
-    deliveryDate: '',
-    status: LoadStatus.PENDING,
-    observation: ''
-  });
+  const [formData, setFormData] = useState<Partial<Load>>(emptyForm);
 
   const handleDriverChange = (driverName: string) => {
     const selectedFleetRecord = fleet.find(f => f.driverName === driverName);
@@ -45,12 +49,29 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
     setFormData(prev => ({
       ...prev,
       driver: driverName,
-      // Auto-populate if record found
       vehicleType: selectedFleetRecord ? selectedFleetRecord.truckType : prev.vehicleType,
       truckPlate: selectedFleetRecord ? selectedFleetRecord.truckPlate : prev.truckPlate,
       trailerPlate: selectedFleetRecord ? selectedFleetRecord.trailerPlate : prev.trailerPlate,
       weight: selectedFleetRecord ? selectedFleetRecord.capacity : prev.weight
     }));
+  };
+
+  const openModalForNew = () => {
+    setEditingLoad(null);
+    setFormData(emptyForm);
+    setIsModalOpen(true);
+  };
+
+  const openModalForEdit = (load: Load) => {
+    setEditingLoad(load);
+    setFormData(load);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingLoad(null);
+    setFormData(emptyForm);
   };
 
   const filteredLoads = loads.filter(load => {
@@ -81,55 +102,17 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
       return;
     }
 
-    const newLoad: Load = {
-      id: `PBC-${(loads.length + 1).toString().padStart(3, '0')}`,
-      date: formData.date || '',
-      client: formData.client || '',
-      origin: formData.origin || '',
-      destination: formData.destination || '',
-      driver: formData.driver || '',
-      vehicleType: formData.vehicleType || '',
-      truckPlate: formData.truckPlate || '',
-      trailerPlate: formData.trailerPlate || '',
-      weight: Number(formData.weight) || 0,
-      companyValue: Number(formData.companyValue) || 0,
-      driverValue: Number(formData.driverValue) || 0,
-      finalValue: Number(formData.finalValue) || 0,
-      toll: Number(formData.toll) || 0,
-      adValorem: Number(formData.adValorem) || 0,
-      icms: !!formData.icms,
-      pisConfins: !!formData.pisConfins,
-      forecastDate: formData.forecastDate || '',
-      deliveryDate: formData.deliveryDate || '',
-      status: formData.status || LoadStatus.PENDING,
-      observation: formData.observation || ''
-    };
-
-    onAddLoad(newLoad);
-    setIsModalOpen(false);
-    // Reset form
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      client: '',
-      origin: '',
-      destination: '',
-      driver: '',
-      vehicleType: '',
-      truckPlate: '',
-      trailerPlate: '',
-      weight: 0,
-      companyValue: 0,
-      driverValue: 0,
-      finalValue: 0,
-      toll: 0,
-      adValorem: 0,
-      icms: true,
-      pisConfins: true,
-      forecastDate: '',
-      deliveryDate: '',
-      status: LoadStatus.PENDING,
-      observation: ''
-    });
+    if (editingLoad) {
+      onUpdateLoad({ ...editingLoad, ...formData });
+    } else {
+      const newLoad: Load = {
+        id: `PBC-${(loads.length + 1).toString().padStart(3, '0')}`,
+        ...emptyForm,
+        ...formData
+      } as Load;
+      onAddLoad(newLoad);
+    }
+    closeModal();
   };
 
   const handleDelete = (id: string, loadIdentifier: string) => {
@@ -211,7 +194,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
           </button>
 
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModalForNew}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -230,7 +213,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
               <th className="px-6 py-4 border-b border-slate-200">Motorista / Veículo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-right">Financeiro</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Status</th>
-              <th className="px-6 py-4 border-b border-slate-200"></th>
+              <th className="px-6 py-4 border-b border-slate-200 text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -275,10 +258,10 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
                     {load.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 align-top text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <button className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Opções">
-                      <MoreVertical size={18} />
+                <td className="px-6 py-4 align-top text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => openModalForEdit(load)} className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar Carga">
+                      <Pencil size={18} />
                     </button>
                     <button 
                       onClick={() => handleDelete(load.id, load.id)}
@@ -302,14 +285,14 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
         )}
       </div>
 
-       {/* Create Modal */}
+       {/* Create/Edit Modal */}
        {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl relative z-10 overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-              <h3 className="text-lg font-bold text-slate-800">Nova Carga</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <h3 className="text-lg font-bold text-slate-800">{editingLoad ? 'Editar Carga' : 'Nova Carga'}</h3>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>
             </div>
@@ -479,7 +462,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors font-medium"
               >
                 Cancelar

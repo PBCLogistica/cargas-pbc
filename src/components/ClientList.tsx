@@ -1,27 +1,48 @@
 import React, { useState } from 'react';
 import { Client } from '../types';
-import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2, Download } from 'lucide-react';
+import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface ClientListProps {
   clients: Client[];
   onAddClient: (client: Client) => void;
+  onUpdateClient: (client: Client) => void;
   onDeleteClient: (id: string) => void;
 }
 
-export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, onDeleteClient }) => {
+const emptyForm: Partial<Client> = {
+  companyName: '',
+  productType: '',
+  city: '',
+  paymentType: 'Boleto',
+  paymentTerm: '',
+  contact: ''
+};
+
+export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, onUpdateClient, onDeleteClient }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   
-  // Form State
-  const [formData, setFormData] = useState<Partial<Client>>({
-    companyName: '',
-    productType: '',
-    city: '',
-    paymentType: 'Boleto',
-    paymentTerm: '',
-    contact: ''
-  });
+  const [formData, setFormData] = useState<Partial<Client>>(emptyForm);
+
+  const openModalForNew = () => {
+    setEditingClient(null);
+    setFormData(emptyForm);
+    setIsModalOpen(true);
+  };
+
+  const openModalForEdit = (client: Client) => {
+    setEditingClient(client);
+    setFormData(client);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingClient(null);
+    setFormData(emptyForm);
+  };
 
   const handleSave = () => {
     if (!formData.companyName || !formData.city) {
@@ -29,26 +50,17 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
         return;
     }
     
-    const newClient: Client = {
-      id: `CLI-${(clients.length + 1).toString().padStart(3, '0')}`,
-      companyName: formData.companyName,
-      productType: formData.productType || 'Geral',
-      city: formData.city,
-      paymentType: formData.paymentType as 'Boleto' | 'Depósito',
-      paymentTerm: formData.paymentTerm || 'À vista',
-      contact: formData.contact || 'N/A'
-    };
-
-    onAddClient(newClient);
-    setIsModalOpen(false);
-    setFormData({
-      companyName: '',
-      productType: '',
-      city: '',
-      paymentType: 'Boleto',
-      paymentTerm: '',
-      contact: ''
-    });
+    if (editingClient) {
+      onUpdateClient({ ...editingClient, ...formData });
+    } else {
+      const newClient: Client = {
+        id: `CLI-${(clients.length + 1).toString().padStart(3, '0')}`,
+        ...emptyForm,
+        ...formData
+      } as Client;
+      onAddClient(newClient);
+    }
+    closeModal();
   };
 
   const handleDelete = (id: string, companyName: string) => {
@@ -113,7 +125,7 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
             <Download size={18} />
           </button>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModalForNew}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -177,13 +189,18 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                    </div>
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <button 
-                    onClick={() => handleDelete(client.id, client.companyName)}
-                    className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
-                    title="Excluir Cliente"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => openModalForEdit(client)} className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors" title="Editar Cliente">
+                      <Pencil size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(client.id, client.companyName)}
+                      className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
+                      title="Excluir Cliente"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -200,11 +217,11 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg relative z-10 overflow-hidden animate-fade-in">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-lg font-bold text-slate-800">Cadastrar Cliente</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <h3 className="text-lg font-bold text-slate-800">{editingClient ? 'Editar Cliente' : 'Cadastrar Cliente'}</h3>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>
             </div>
@@ -282,7 +299,7 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors font-medium"
               >
                 Cancelar

@@ -1,51 +1,63 @@
 import React, { useState } from 'react';
 import { FleetRecord } from '../types';
-import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download } from 'lucide-react';
+import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface FleetListProps {
   records: FleetRecord[];
   onAddRecord: (record: FleetRecord) => void;
+  onUpdateRecord: (record: FleetRecord) => void;
   onDeleteRecord: (id: string) => void;
 }
 
-export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDeleteRecord }) => {
+const emptyForm: Partial<FleetRecord> = {
+  driverName: '',
+  truckPlate: '',
+  trailerPlate: '',
+  truckType: 'Carreta Baú',
+  ownershipType: 'Frota',
+  capacity: 0
+};
+
+export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUpdateRecord, onDeleteRecord }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<FleetRecord | null>(null);
   
-  // Form State
-  const [formData, setFormData] = useState<Partial<FleetRecord>>({
-    driverName: '',
-    truckPlate: '',
-    trailerPlate: '',
-    truckType: 'Carreta Baú',
-    ownershipType: 'Frota',
-    capacity: 0
-  });
+  const [formData, setFormData] = useState<Partial<FleetRecord>>(emptyForm);
+
+  const openModalForNew = () => {
+    setEditingRecord(null);
+    setFormData(emptyForm);
+    setIsModalOpen(true);
+  };
+
+  const openModalForEdit = (record: FleetRecord) => {
+    setEditingRecord(record);
+    setFormData(record);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingRecord(null);
+    setFormData(emptyForm);
+  };
 
   const handleSave = () => {
     if (!formData.driverName || !formData.truckPlate) return;
     
-    const newRecord: FleetRecord = {
-      id: `FL-${(records.length + 1).toString().padStart(3, '0')}`,
-      driverName: formData.driverName,
-      truckPlate: formData.truckPlate,
-      trailerPlate: formData.trailerPlate || 'N/A',
-      truckType: formData.truckType || 'Outro',
-      ownershipType: formData.ownershipType as 'Frota' | 'Terceiro',
-      capacity: Number(formData.capacity) || 0
-    };
-
-    onAddRecord(newRecord);
-    setIsModalOpen(false);
-    setFormData({
-      driverName: '',
-      truckPlate: '',
-      trailerPlate: '',
-      truckType: 'Carreta Baú',
-      ownershipType: 'Frota',
-      capacity: 0
-    });
+    if (editingRecord) {
+      onUpdateRecord({ ...editingRecord, ...formData });
+    } else {
+      const newRecord: FleetRecord = {
+        id: `FL-${(records.length + 1).toString().padStart(3, '0')}`,
+        ...emptyForm,
+        ...formData
+      } as FleetRecord;
+      onAddRecord(newRecord);
+    }
+    closeModal();
   };
 
   const handleDelete = (id: string, driverName: string) => {
@@ -109,7 +121,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
             <Download size={18} />
           </button>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModalForNew}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -172,8 +184,8 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <button className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors" title="Editar">
-                      <Settings2 size={18} />
+                    <button onClick={() => openModalForEdit(record)} className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors" title="Editar">
+                      <Pencil size={18} />
                     </button>
                     <button 
                       onClick={() => handleDelete(record.id, record.driverName)}
@@ -193,11 +205,11 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg relative z-10 overflow-hidden animate-fade-in">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-lg font-bold text-slate-800">Novo Cadastro</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <h3 className="text-lg font-bold text-slate-800">{editingRecord ? 'Editar Cadastro' : 'Novo Cadastro'}</h3>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>
             </div>
@@ -279,7 +291,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors font-medium"
               >
                 Cancelar

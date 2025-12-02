@@ -41,6 +41,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
     setLoads([newLoad, ...loads]);
   };
 
+  const handleUpdateLoad = (updatedLoad: Load) => {
+    setLoads(loads.map(load => (load.id === updatedLoad.id ? updatedLoad : load)));
+  };
+
   const handleDeleteLoad = (id: string) => {
     setLoads(loads.filter(load => load.id !== id));
   };
@@ -49,12 +53,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
     setFleetRecords([...fleetRecords, newRecord]);
   };
 
+  const handleUpdateFleetRecord = (updatedRecord: FleetRecord) => {
+    setFleetRecords(fleetRecords.map(record => (record.id === updatedRecord.id ? updatedRecord : record)));
+  };
+
   const handleDeleteFleetRecord = (id: string) => {
     setFleetRecords(fleetRecords.filter(record => record.id !== id));
   };
 
   const handleAddClient = (newClient: Client) => {
     setClients([...clients, newClient]);
+  };
+
+  const handleUpdateClient = (updatedClient: Client) => {
+    setClients(clients.map(client => (client.id === updatedClient.id ? updatedClient : client)));
   };
 
   const handleDeleteClient = (id: string) => {
@@ -74,11 +86,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'dashboard':
         return <Dashboard loads={loads} fleet={fleetRecords} />;
       case 'loads':
-        return <LoadList loads={loads} fleet={fleetRecords} onAddLoad={handleAddLoad} onDeleteLoad={handleDeleteLoad} />;
+        return <LoadList loads={loads} fleet={fleetRecords} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
       case 'fleet':
-        return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
+        return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':
-        return <ClientList clients={clients} onAddClient={handleAddClient} onDeleteClient={handleDeleteClient} />;
+        return <ClientList clients={clients} onAddClient={handleAddClient} onUpdateClient={handleUpdateClient} onDeleteClient={handleDeleteClient} />;
       case 'daily_rates':
         return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
       case 'tracking':
