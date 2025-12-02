@@ -9,7 +9,7 @@ import { TrackingView } from './TrackingView';
 import { FreightCalculator } from './FreightCalculator';
 import { AIAssistant } from './AIAssistant';
 import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES } from '../constants';
-import { ViewState, FleetRecord, Client, DailyRateRecord } from '../types';
+import { ViewState, FleetRecord, Client, DailyRateRecord, Load } from '../types';
 import { Menu, Bell } from 'lucide-react';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -22,9 +22,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // Lifted state
+  const [loads, setLoads] = useState<Load[]>(MOCK_LOADS);
   const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>(MOCK_FLEET);
   const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
   const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>(MOCK_DAILY_RATES);
+
+  const handleAddLoad = (newLoad: Load) => {
+    setLoads([newLoad, ...loads]);
+  };
+
+  const handleDeleteLoad = (id: string) => {
+    setLoads(loads.filter(load => load.id !== id));
+  };
 
   const handleAddFleetRecord = (newRecord: FleetRecord) => {
     setFleetRecords([...fleetRecords, newRecord]);
@@ -49,9 +58,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard loads={MOCK_LOADS} fleet={fleetRecords} />;
+        return <Dashboard loads={loads} fleet={fleetRecords} />;
       case 'loads':
-        return <LoadList loads={MOCK_LOADS} fleet={fleetRecords} />;
+        return <LoadList loads={loads} fleet={fleetRecords} onAddLoad={handleAddLoad} onDeleteLoad={handleDeleteLoad} />;
       case 'fleet':
         return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':
@@ -59,11 +68,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'daily_rates':
         return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
       case 'tracking':
-        return <TrackingView loads={MOCK_LOADS} />;
+        return <TrackingView loads={loads} />;
       case 'calculator':
         return <FreightCalculator />;
       case 'assistant':
-        return <AIAssistant loads={MOCK_LOADS} />;
+        return <AIAssistant loads={loads} />;
       case 'settings':
         return (
           <div className="flex items-center justify-center h-full text-slate-400">
@@ -74,7 +83,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
           </div>
         );
       default:
-        return <Dashboard loads={MOCK_LOADS} fleet={fleetRecords} />;
+        return <Dashboard loads={loads} fleet={fleetRecords} />;
     }
   };
 

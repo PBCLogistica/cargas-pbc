@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord } from '../types';
-import { Search, Filter, MoreVertical, MapPin, Calendar, DollarSign, Weight, Plus, X, Save } from 'lucide-react';
+import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2 } from 'lucide-react';
 
 interface LoadListProps {
   loads: Load[];
   fleet: FleetRecord[];
+  onAddLoad: (load: Load) => void;
+  onDeleteLoad: (id: string) => void;
 }
 
-export const LoadList: React.FC<LoadListProps> = ({ loads: initialLoads, fleet }) => {
-  const [loads, setLoads] = useState<Load[]>(initialLoads);
+export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onDeleteLoad }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<LoadStatus | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,7 +104,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads: initialLoads, fleet }
       observation: formData.observation || ''
     };
 
-    setLoads([newLoad, ...loads]);
+    onAddLoad(newLoad);
     setIsModalOpen(false);
     // Reset form
     setFormData({
@@ -128,6 +129,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads: initialLoads, fleet }
       status: LoadStatus.PENDING,
       observation: ''
     });
+  };
+
+  const handleDelete = (id: string, loadIdentifier: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir a carga ${loadIdentifier}?`)) {
+      onDeleteLoad(id);
+    }
   };
 
   return (
@@ -231,9 +238,18 @@ export const LoadList: React.FC<LoadListProps> = ({ loads: initialLoads, fleet }
                   </span>
                 </td>
                 <td className="px-6 py-4 align-top text-right">
-                  <button className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors">
-                    <MoreVertical size={18} />
-                  </button>
+                  <div className="flex items-center justify-end gap-1">
+                    <button className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Opções">
+                      <MoreVertical size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(load.id, load.id)}
+                      className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" 
+                      title="Excluir Carga"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
