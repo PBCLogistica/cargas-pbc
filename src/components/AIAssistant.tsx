@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
 import { analyzeLoads } from '../services/geminiService';
 import { Load } from '../types';
-import ReactMarkdown from 'react-markdown'; // Assuming we can use standard markdown rendering or just text
+import ReactMarkdown from 'react-markdown';
 
 interface AIAssistantProps {
   loads: Load[];
@@ -95,7 +95,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ loads }) => {
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
                 : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'}
             `}>
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              {msg.role === 'model' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : <div className="whitespace-pre-wrap">{msg.content}</div>}
             </div>
           </div>
         ))}
