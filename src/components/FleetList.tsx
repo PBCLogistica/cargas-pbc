@@ -14,7 +14,7 @@ const emptyForm: Partial<FleetRecord> = {
   driverName: '',
   truckPlate: '',
   trailerPlate: '',
-  truckType: 'Carreta Baú',
+  truckType: 'carreta baú',
   ownershipType: 'Frota',
   capacity: 0
 };
@@ -257,11 +257,11 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
                     onChange={e => setFormData({...formData, truckType: e.target.value})}
                     className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   >
-                    <option value="Carreta Baú">Carreta Baú</option>
-                    <option value="Sider">Sider</option>
-                    <option value="Graneleiro">Graneleiro</option>
-                    <option value="Truck">Truck</option>
-                    <option value="Bitrem">Bitrem</option>
+                    <option value="carreta">Carreta</option>
+                    <option value="carreta 14,5m">Carreta 14,5m</option>
+                    <option value="carreta 15m">Carreta 15m</option>
+                    <option value="truck">Truck</option>
+                    <option value="carreta baú">Carreta Baú</option>
                   </select>
                 </div>
                 <div>
