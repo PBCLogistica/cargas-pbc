@@ -4,6 +4,7 @@ import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Tra
 import * as XLSX from 'xlsx';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
+import { useInputHistory } from '../hooks/useInputHistory';
 
 interface ClientListProps {
   clients: Client[];
@@ -27,6 +28,10 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   
   const [formData, setFormData] = useState<Partial<Client>>(emptyForm);
+
+  // History Hooks
+  const [productTypeHistory, addProductType] = useInputHistory('productType');
+  const [paymentTermHistory, addPaymentTerm] = useInputHistory('paymentTerm');
 
   const openModalForNew = () => {
     setEditingClient(null);
@@ -52,6 +57,10 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
         return;
     }
     
+    // Add to history
+    if (formData.productType) addProductType(formData.productType);
+    if (formData.paymentTerm) addPaymentTerm(formData.paymentTerm);
+
     if (editingClient) {
       onUpdateClient({ ...editingClient, ...formData });
     } else {
@@ -243,11 +252,10 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Produto</label>
-                  <input 
-                    type="text" 
-                    value={formData.productType}
-                    onChange={e => setFormData({...formData, productType: e.target.value})}
-                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  <AutocompleteInput
+                    value={formData.productType || ''}
+                    onChange={value => setFormData({ ...formData, productType: value })}
+                    suggestions={productTypeHistory}
                     placeholder="Ex: Eletrônicos"
                   />
                 </div>
@@ -276,11 +284,10 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Prazo de Pagamento</label>
-                  <input 
-                    type="text" 
-                    value={formData.paymentTerm}
-                    onChange={e => setFormData({...formData, paymentTerm: e.target.value})}
-                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  <AutocompleteInput
+                    value={formData.paymentTerm || ''}
+                    onChange={value => setFormData({ ...formData, paymentTerm: value })}
+                    suggestions={paymentTermHistory}
                     placeholder="Ex: 30 dias, À vista"
                   />
                 </div>

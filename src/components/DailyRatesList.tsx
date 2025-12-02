@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { DailyRateRecord, FleetRecord, Client } from '../types';
 import { Search, Plus, Clock, FileText, Paperclip, X, Save, Calendar, AlertCircle } from 'lucide-react';
+import { AutocompleteInput } from './AutocompleteInput';
+import { useInputHistory } from '../hooks/useInputHistory';
 
 interface DailyRatesListProps {
   records: DailyRateRecord[];
@@ -27,6 +29,9 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
     delayReason: '',
     hasAttachment: false
   });
+
+  // History Hook
+  const [delayReasonHistory, addDelayReason] = useInputHistory('delayReason');
 
   const calculateHours = (start: string, end: string) => {
       if (!start || !end) return 0;
@@ -57,6 +62,11 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
     if (!formData.clientName || !formData.driverName || !formData.arrivalDateTime) {
         alert("Preencha cliente, motorista e horário de chegada.");
         return;
+    }
+
+    // Add to history
+    if (formData.delayReason) {
+      addDelayReason(formData.delayReason);
     }
 
     const newRecord: DailyRateRecord = {
@@ -308,12 +318,12 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
               {/* Details */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Motivo do Atraso</label>
-                <textarea 
-                    className="w-full p-2 border border-slate-200 rounded-lg resize-none h-20"
+                <AutocompleteInput
+                    value={formData.delayReason || ''}
+                    onChange={value => setFormData({ ...formData, delayReason: value })}
+                    suggestions={delayReasonHistory}
                     placeholder="Descreva o motivo..."
-                    value={formData.delayReason}
-                    onChange={e => setFormData({...formData, delayReason: e.target.value})}
-                ></textarea>
+                />
               </div>
 
               {/* Attachment */}

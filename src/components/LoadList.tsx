@@ -4,6 +4,7 @@ import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Sa
 import * as XLSX from 'xlsx';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
+import { useInputHistory } from '../hooks/useInputHistory';
 
 interface LoadListProps {
   loads: Load[];
@@ -45,6 +46,9 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
 
   // Form State
   const [formData, setFormData] = useState<Partial<Load>>(emptyForm);
+  
+  // History Hook
+  const [observationHistory, addObservation] = useInputHistory('observation');
 
   const handleDriverChange = (driverName: string) => {
     const selectedFleetRecord = fleet.find(f => f.driverName === driverName);
@@ -103,6 +107,11 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     if (!formData.client || !formData.origin || !formData.destination) {
       alert("Por favor, preencha os campos obrigatórios.");
       return;
+    }
+
+    // Add to history
+    if (formData.observation) {
+      addObservation(formData.observation);
     }
 
     if (editingLoad) {
@@ -412,8 +421,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                    </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Observação</label>
-                        <textarea className="w-full p-2 border border-slate-200 rounded-lg text-sm resize-none h-20" placeholder="Observações gerais da carga..."
-                             value={formData.observation} onChange={e => setFormData({...formData, observation: e.target.value})}></textarea>
+                        <AutocompleteInput
+                            value={formData.observation || ''}
+                            onChange={value => setFormData({ ...formData, observation: value })}
+                            suggestions={observationHistory}
+                            placeholder="Observações gerais da carga..."
+                        />
                     </div>
                 </div>
 
