@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Dashboard } from './Dashboard';
 import { LoadList } from './LoadList';
@@ -11,7 +11,7 @@ import { AIAssistant } from './AIAssistant';
 import { Settings } from './Settings';
 import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES } from '../constants';
 import { ViewState, FleetRecord, Client, DailyRateRecord, Load } from '../types';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, Save, CheckCircle } from 'lucide-react';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 interface MainLayoutProps {
@@ -21,6 +21,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // User Profile State
   const [userName, setUserName] = useState('Admin Usuário');
@@ -31,6 +32,44 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>(MOCK_FLEET);
   const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
   const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>(MOCK_DAILY_RATES);
+
+  // Load data from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedLoads = localStorage.getItem('cargas_pbc_loads');
+      if (savedLoads) setLoads(JSON.parse(savedLoads));
+
+      const savedFleet = localStorage.getItem('cargas_pbc_fleet');
+      if (savedFleet) setFleetRecords(JSON.parse(savedFleet));
+
+      const savedClients = localStorage.getItem('cargas_pbc_clients');
+      if (savedClients) setClients(JSON.parse(savedClients));
+
+      const savedDailyRates = localStorage.getItem('cargas_pbc_dailyRates');
+      if (savedDailyRates) setDailyRates(JSON.parse(savedDailyRates));
+    } catch (error) {
+      console.error("Failed to load data from localStorage", error);
+    }
+  }, []);
+
+  const handleSaveChanges = () => {
+    setIsSaving(true);
+    try {
+      localStorage.setItem('cargas_pbc_loads', JSON.stringify(loads));
+      localStorage.setItem('cargas_pbc_fleet', JSON.stringify(fleetRecords));
+      localStorage.setItem('cargas_pbc_clients', JSON.stringify(clients));
+      localStorage.setItem('cargas_pbc_dailyRates', JSON.stringify(dailyRates));
+      
+      setTimeout(() => {
+        setIsSaving(false);
+      }, 1500);
+
+    } catch (error) {
+      console.error("Failed to save data to localStorage", error);
+      alert('Ocorreu um erro ao salvar as alterações.');
+      setIsSaving(false);
+    }
+  };
 
   const handleProfileUpdate = (newName: string, newAvatar: string) => {
     setUserName(newName);
@@ -142,7 +181,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
           </div>
 
           <div className="flex items-center gap-4">
-             {/* Notification Bell Demo */}
+             <button 
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm
+                    ${isSaving 
+                        ? 'bg-emerald-600 text-white cursor-not-allowed' 
+                        : 'bg-emerald-500 text-white hover:bg-emerald-600'}
+                `}
+             >
+                {isSaving ? (
+                    <>
+                        <CheckCircle size={18} />
+                        Salvo!
+                    </>
+                ) : (
+                    <>
+                        <Save size={18} />
+                        Salvar Alterações
+                    </>
+                )}
+             </button>
+
             <button className="relative p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
