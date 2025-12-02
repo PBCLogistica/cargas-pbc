@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, ComposedChart, Line, AreaChart, Area, Legend 
+  PieChart, Pie, Cell, ComposedChart, Line, AreaChart, Area, Legend, LabelList
 } from 'recharts';
 import { Load, LoadStatus, FleetRecord } from '../types';
 import { TrendingUp, AlertTriangle, CheckCircle, Package, DollarSign, Target, Users } from 'lucide-react';
@@ -141,17 +141,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
           </div>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={revenueVsGoalData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <ComposedChart data={revenueVsGoalData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(val) => `R$${val/1000}k`} />
+                <YAxis hide />
                 <Tooltip 
                    cursor={{fill: '#f8fafc'}}
                    formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, '']}
                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend />
-                <Bar dataKey="receita" name="Receita Realizada" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="receita" name="Receita Realizada" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40}>
+                  <LabelList 
+                    dataKey="receita" 
+                    position="top" 
+                    formatter={(value: number) => `R$${(value / 1000).toFixed(0)}k`}
+                    style={{ fill: '#475569', fontSize: 12, fontWeight: 500 }}
+                  />
+                </Bar>
                 <Line type="monotone" dataKey="meta" name="Meta Mensal" stroke="#ef4444" strokeWidth={2} dot={{r: 4}} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -219,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
             </h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueByClient} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
+                <BarChart data={revenueByClient} layout="vertical" margin={{ top: 0, right: 50, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e2e8f0" />
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" width={110} tick={{fontSize: 11, fill: '#475569'}} />
@@ -228,7 +235,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                         formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']}
                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barSize={24} />
+                    <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barSize={24}>
+                      <LabelList 
+                        dataKey="value" 
+                        position="right" 
+                        formatter={(value: number) => `R$ ${(value / 1000).toFixed(1)}k`}
+                        style={{ fill: '#334155', fontSize: 12, fontWeight: 500 }}
+                      />
+                    </Bar>
                 </BarChart>
                 </ResponsiveContainer>
             </div>
