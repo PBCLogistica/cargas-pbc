@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Client } from '../types';
-import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2 } from 'lucide-react';
+import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2, Download } from 'lucide-react';
 
 interface ClientListProps {
   clients: Client[];
@@ -62,6 +62,38 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
     client.productType.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleExport = () => {
+    if (filteredClients.length === 0) {
+      alert("Nenhum cliente para exportar.");
+      return;
+    }
+
+    const headers = ['ID', 'Empresa', 'Tipo Produto', 'Cidade', 'Tipo Cobrança', 'Prazo Pagamento', 'Contato'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredClients.map(client => [
+        `"${client.id}"`,
+        `"${client.companyName}"`,
+        `"${client.productType}"`,
+        `"${client.city}"`,
+        `"${client.paymentType}"`,
+        `"${client.paymentTerm}"`,
+        `"${client.contact}"`
+      ].join(','))
+    ];
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `export_clientes_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
@@ -82,6 +114,12 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
               className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm w-full sm:w-64"
             />
           </div>
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <Download size={18} />
+          </button>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"

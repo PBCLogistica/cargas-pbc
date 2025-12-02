@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord } from '../types';
-import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2 } from 'lucide-react';
+import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download } from 'lucide-react';
 
 interface LoadListProps {
   loads: Load[];
@@ -137,6 +137,45 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
     }
   };
 
+  const handleExport = () => {
+    if (filteredLoads.length === 0) {
+      alert("Nenhuma carga para exportar.");
+      return;
+    }
+
+    const headers = ['ID', 'Data Emissão', 'Cliente', 'Origem', 'Destino', 'Motorista', 'Placa Cavalo', 'Placa Carreta', 'Peso (kg)', 'Valor Empresa', 'Valor Motorista', 'Pedágio', 'Status', 'Observação'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredLoads.map(load => [
+        `"${load.id}"`,
+        `"${load.date}"`,
+        `"${load.client}"`,
+        `"${load.origin}"`,
+        `"${load.destination}"`,
+        `"${load.driver}"`,
+        `"${load.truckPlate}"`,
+        `"${load.trailerPlate}"`,
+        load.weight,
+        load.companyValue,
+        load.driverValue,
+        load.toll,
+        `"${load.status}"`,
+        `"${load.observation.replace(/"/g, '""')}"`
+      ].join(','))
+    ];
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `export_cargas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-8rem)]">
       {/* Header / Controls */}
@@ -171,6 +210,13 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onD
               ))}
             </select>
           </div>
+
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <Download size={18} />
+          </button>
 
           <button 
             onClick={() => setIsModalOpen(true)}

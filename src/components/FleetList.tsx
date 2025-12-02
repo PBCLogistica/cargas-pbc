@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FleetRecord } from '../types';
-import { Search, Plus, User, Truck, Settings2, X, Save, Trash2 } from 'lucide-react';
+import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download } from 'lucide-react';
 
 interface FleetListProps {
   records: FleetRecord[];
@@ -58,6 +58,38 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
     record.truckPlate.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleExport = () => {
+    if (filteredRecords.length === 0) {
+      alert("Nenhum registro de frota para exportar.");
+      return;
+    }
+
+    const headers = ['ID', 'Motorista', 'Placa Cavalo', 'Placa Carreta', 'Tipo Veículo', 'Vínculo', 'Capacidade (kg)'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredRecords.map(rec => [
+        `"${rec.id}"`,
+        `"${rec.driverName}"`,
+        `"${rec.truckPlate}"`,
+        `"${rec.trailerPlate}"`,
+        `"${rec.truckType}"`,
+        `"${rec.ownershipType}"`,
+        rec.capacity
+      ].join(','))
+    ];
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `export_frota_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
@@ -78,6 +110,12 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDe
               className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm w-full sm:w-64"
             />
           </div>
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <Download size={18} />
+          </button>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
