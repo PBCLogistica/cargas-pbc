@@ -93,7 +93,41 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   };
 
   const handleUpdateFleetRecord = (updatedRecord: FleetRecord) => {
+    const originalRecord = fleetRecords.find(f => f.id === updatedRecord.id);
+    if (!originalRecord) return;
+
     setFleetRecords(fleetRecords.map(record => (record.id === updatedRecord.id ? updatedRecord : record)));
+
+    // Propagate changes to other data sets
+    setLoads(prevLoads => 
+      prevLoads.map(load => {
+        if (load.driver === originalRecord.driverName) {
+          return {
+            ...load,
+            driver: updatedRecord.driverName,
+            truckPlate: updatedRecord.truckPlate,
+            trailerPlate: updatedRecord.trailerPlate,
+            vehicleType: updatedRecord.truckType,
+            weight: updatedRecord.capacity
+          };
+        }
+        return load;
+      })
+    );
+
+    setDailyRates(prevDailyRates => 
+      prevDailyRates.map(rate => {
+        if (rate.driverName === originalRecord.driverName) {
+          return {
+            ...rate,
+            driverName: updatedRecord.driverName,
+            truckPlate: updatedRecord.truckPlate,
+            trailerPlate: updatedRecord.trailerPlate
+          };
+        }
+        return rate;
+      })
+    );
   };
 
   const handleDeleteFleetRecord = (id: string) => {
@@ -105,7 +139,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   };
 
   const handleUpdateClient = (updatedClient: Client) => {
+    const originalClient = clients.find(c => c.id === updatedClient.id);
+    if (!originalClient) return;
+
     setClients(clients.map(client => (client.id === updatedClient.id ? updatedClient : client)));
+
+    // Propagate name change if it occurred
+    if (originalClient.companyName !== updatedClient.companyName) {
+      setLoads(prevLoads => 
+        prevLoads.map(load => 
+          load.client === originalClient.companyName ? { ...load, client: updatedClient.companyName } : load
+        )
+      );
+      setDailyRates(prevDailyRates => 
+        prevDailyRates.map(rate => 
+          rate.clientName === originalClient.companyName ? { ...rate, clientName: updatedClient.companyName } : rate
+        )
+      );
+    }
   };
 
   const handleDeleteClient = (id: string) => {
