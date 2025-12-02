@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord, Client } from '../types';
 import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { AutocompleteInput } from './AutocompleteInput';
+import { BRAZILIAN_CITIES } from '../data/cities';
 
 interface LoadListProps {
   loads: Load[];
@@ -339,13 +341,21 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Origem</label>
-                        <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm" placeholder="Cidade, UF"
-                             value={formData.origin} onChange={e => setFormData({...formData, origin: e.target.value})} />
+                        <AutocompleteInput
+                            value={formData.origin || ''}
+                            onChange={value => setFormData({ ...formData, origin: value })}
+                            suggestions={BRAZILIAN_CITIES}
+                            placeholder="Cidade, UF"
+                        />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Destino</label>
-                        <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm" placeholder="Cidade, UF"
-                             value={formData.destination} onChange={e => setFormData({...formData, destination: e.target.value})} />
+                        <AutocompleteInput
+                            value={formData.destination || ''}
+                            onChange={value => setFormData({ ...formData, destination: value })}
+                            suggestions={BRAZILIAN_CITIES}
+                            placeholder="Cidade, UF"
+                        />
                       </div>
                    </div>
                    <div>

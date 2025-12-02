@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Load, LoadStatus, TrackingUpdate } from '../types';
 import { MapPin, Search, Navigation, Clock, CheckCircle, Calendar, Plus, ExternalLink, Truck, FileCheck, Upload, FileText, LayoutGrid, Map as MapIcon, AlertTriangle } from 'lucide-react';
 import { MOCK_TRACKING_HISTORY } from '../constants';
+import { AutocompleteInput } from './AutocompleteInput';
+import { BRAZILIAN_CITIES } from '../data/cities';
 
 interface TrackingViewProps {
   loads: Load[];
@@ -356,12 +358,11 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
                                 
                                 <div className={updateForm.isFinishing ? "md:col-span-2" : ""}>
                                     <label className="block text-xs font-medium text-slate-600 mb-1">Local Atual (Cidade/UF)</label>
-                                    <input 
-                                    type="text" 
-                                    placeholder="Ex: São Paulo, SP"
-                                    value={updateForm.location}
-                                    onChange={e => setUpdateForm({...updateForm, location: e.target.value})}
-                                    className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                    <AutocompleteInput 
+                                        value={updateForm.location}
+                                        onChange={value => setUpdateForm({...updateForm, location: value})}
+                                        suggestions={BRAZILIAN_CITIES}
+                                        placeholder="Ex: São Paulo, SP"
                                     />
                                 </div>
                             </div>

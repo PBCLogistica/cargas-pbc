@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Calculator, DollarSign, Truck, Info, RefreshCw, Briefcase, MapPin, Navigation, Search } from 'lucide-react';
+import { AutocompleteInput } from './AutocompleteInput';
+import { BRAZILIAN_CITIES } from '../data/cities';
 
 // Simplified Coefficients based on ANTT methodology (Mock Data for Demo)
 // CCD: Cost of Displacement (R$/km)
@@ -148,22 +150,22 @@ export const FreightCalculator: React.FC = () => {
              </h3>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div className="relative">
-                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500" />
-                    <input 
-                        type="text" 
-                        placeholder="Origem (Ex: São Paulo, SP)"
+                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-500 z-10" />
+                    <AutocompleteInput 
                         value={origin}
-                        onChange={(e) => setOrigin(e.target.value)}
+                        onChange={setOrigin}
+                        suggestions={BRAZILIAN_CITIES}
+                        placeholder="Origem (Ex: São Paulo, SP)"
                         className="w-full pl-9 p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
                 </div>
                 <div className="relative">
-                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500" />
-                    <input 
-                        type="text" 
-                        placeholder="Destino (Ex: Rio de Janeiro, RJ)"
+                    <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 z-10" />
+                    <AutocompleteInput 
                         value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
+                        onChange={setDestination}
+                        suggestions={BRAZILIAN_CITIES}
+                        placeholder="Destino (Ex: Rio de Janeiro, RJ)"
                         className="w-full pl-9 p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
                 </div>

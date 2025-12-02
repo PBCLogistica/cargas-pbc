@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Client } from '../types';
 import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { AutocompleteInput } from './AutocompleteInput';
+import { BRAZILIAN_CITIES } from '../data/cities';
 
 interface ClientListProps {
   clients: Client[];
@@ -251,11 +253,10 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Cidade / UF</label>
-                  <input 
-                    type="text" 
-                    value={formData.city}
-                    onChange={e => setFormData({...formData, city: e.target.value})}
-                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                  <AutocompleteInput
+                    value={formData.city || ''}
+                    onChange={value => setFormData({ ...formData, city: value })}
+                    suggestions={BRAZILIAN_CITIES}
                     placeholder="Ex: São Paulo, SP"
                   />
                 </div>
