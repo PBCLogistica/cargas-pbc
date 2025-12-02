@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord, Client } from '../types';
-import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil } from 'lucide-react';
+import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil, Building2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
@@ -82,11 +82,13 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
   };
 
   const filteredLoads = loads.filter(load => {
+    const searchTermLower = searchTerm.toLowerCase();
     const matchesSearch = 
-      load.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      load.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      load.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      load.id.toLowerCase().includes(searchTerm.toLowerCase());
+      load.origin.toLowerCase().includes(searchTermLower) ||
+      load.destination.toLowerCase().includes(searchTermLower) ||
+      load.driver.toLowerCase().includes(searchTermLower) ||
+      load.id.toLowerCase().includes(searchTermLower) ||
+      load.client.toLowerCase().includes(searchTermLower);
     
     const matchesStatus = filterStatus === 'All' || load.status === filterStatus;
 
@@ -177,7 +179,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
-              placeholder="Buscar carga, motorista..." 
+              placeholder="Buscar cliente, carga..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm w-full sm:w-64"
@@ -221,7 +223,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
           <thead className="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10">
             <tr>
               <th className="px-6 py-4 border-b border-slate-200">ID / Data</th>
-              <th className="px-6 py-4 border-b border-slate-200">Rota</th>
+              <th className="px-6 py-4 border-b border-slate-200">Cliente / Rota</th>
               <th className="px-6 py-4 border-b border-slate-200">Motorista / Veículo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-right">Financeiro</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Status</th>
@@ -239,10 +241,14 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                   </div>
                 </td>
                 <td className="px-6 py-4 align-top">
-                  <div className="flex flex-col gap-1">
+                  <div className="font-bold text-slate-900 flex items-center gap-2">
+                    <Building2 size={14} className="text-slate-400" />
+                    {load.client}
+                  </div>
+                  <div className="flex flex-col gap-1 mt-2 pl-6">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                      <span className="text-slate-900 font-medium">{load.origin}</span>
+                      <span className="text-slate-600">{load.origin}</span>
                     </div>
                     <div className="border-l border-slate-300 h-3 ml-1 my-0.5"></div>
                     <div className="flex items-center gap-2">
