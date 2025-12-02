@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Client } from '../types';
-import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save } from 'lucide-react';
+import { Search, Plus, Building2, MapPin, CreditCard, Clock, Phone, X, Save, Trash2 } from 'lucide-react';
 
 interface ClientListProps {
   clients: Client[];
   onAddClient: (client: Client) => void;
+  onDeleteClient: (id: string) => void;
 }
 
-export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient }) => {
+export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, onDeleteClient }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -47,6 +48,12 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient }) 
       paymentTerm: '',
       contact: ''
     });
+  };
+
+  const handleDelete = (id: string, companyName: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir o cliente ${companyName}?`)) {
+      onDeleteClient(id);
+    }
   };
 
   const filteredClients = clients.filter(client => 
@@ -95,6 +102,7 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient }) 
               <th className="px-6 py-4 border-b border-slate-200">Cidade</th>
               <th className="px-6 py-4 border-b border-slate-200">Cobrança</th>
               <th className="px-6 py-4 border-b border-slate-200">Contato</th>
+              <th className="px-6 py-4 border-b border-slate-200 text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -137,6 +145,15 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient }) 
                       <Phone size={14} className="text-slate-400" />
                       <span className="text-slate-700">{client.contact}</span>
                    </div>
+                </td>
+                <td className="px-6 py-4 text-center">
+                  <button 
+                    onClick={() => handleDelete(client.id, client.companyName)}
+                    className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
+                    title="Excluir Cliente"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </td>
               </tr>
             ))}

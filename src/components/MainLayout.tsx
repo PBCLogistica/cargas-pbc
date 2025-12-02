@@ -47,6 +47,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
     setClients([...clients, newClient]);
   };
 
+  const handleDeleteClient = (id: string) => {
+    setClients(clients.filter(client => client.id !== id));
+  };
+
   const handleAddDailyRate = (newRecord: DailyRateRecord) => {
     setDailyRates([...dailyRates, newRecord]);
   };
@@ -64,7 +68,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'fleet':
         return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':
-        return <ClientList clients={clients} onAddClient={handleAddClient} />;
+        return <ClientList clients={clients} onAddClient={handleAddClient} onDeleteClient={handleDeleteClient} />;
       case 'daily_rates':
         return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
       case 'tracking':
