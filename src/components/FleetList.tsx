@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { FleetRecord } from '../types';
-import { Search, Plus, User, Truck, Settings2, X, Save } from 'lucide-react';
+import { Search, Plus, User, Truck, Settings2, X, Save, Trash2 } from 'lucide-react';
 
 interface FleetListProps {
   records: FleetRecord[];
   onAddRecord: (record: FleetRecord) => void;
+  onDeleteRecord: (id: string) => void;
 }
 
-export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord }) => {
+export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onDeleteRecord }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -44,6 +45,12 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord }) =>
       ownershipType: 'Frota',
       capacity: 0
     });
+  };
+
+  const handleDelete = (id: string, driverName: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir o cadastro de ${driverName}?`)) {
+      onDeleteRecord(id);
+    }
   };
 
   const filteredRecords = records.filter(record => 
@@ -91,7 +98,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord }) =>
               <th className="px-6 py-4 border-b border-slate-200">Tipo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Vínculo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-right">Capacidade</th>
-              <th className="px-6 py-4 border-b border-slate-200"></th>
+              <th className="px-6 py-4 border-b border-slate-200 text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -133,10 +140,19 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord }) =>
                 <td className="px-6 py-4 text-right font-medium text-slate-900">
                   {(record.capacity / 1000).toLocaleString('pt-BR')} ton
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <button className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors">
-                    <Settings2 size={18} />
-                  </button>
+                <td className="px-6 py-4 text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <button className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors" title="Editar">
+                      <Settings2 size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(record.id, record.driverName)}
+                      className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

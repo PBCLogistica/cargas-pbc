@@ -30,6 +30,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
     setFleetRecords([...fleetRecords, newRecord]);
   };
 
+  const handleDeleteFleetRecord = (id: string) => {
+    setFleetRecords(fleetRecords.filter(record => record.id !== id));
+  };
+
   const handleAddClient = (newClient: Client) => {
     setClients([...clients, newClient]);
   };
@@ -49,7 +53,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'loads':
         return <LoadList loads={MOCK_LOADS} fleet={fleetRecords} />;
       case 'fleet':
-        return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} />;
+        return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':
         return <ClientList clients={clients} onAddClient={handleAddClient} />;
       case 'daily_rates':
