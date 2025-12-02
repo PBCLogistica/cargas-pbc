@@ -86,7 +86,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       case 'dashboard':
         return <Dashboard loads={loads} fleet={fleetRecords} />;
       case 'loads':
-        return <LoadList loads={loads} fleet={fleetRecords} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
+        return <LoadList loads={loads} fleet={fleetRecords} clients={clients} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
       case 'fleet':
         return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':

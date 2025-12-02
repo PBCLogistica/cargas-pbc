@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Load, LoadStatus, FleetRecord } from '../types';
+import { Load, LoadStatus, FleetRecord, Client } from '../types';
 import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface LoadListProps {
   loads: Load[];
   fleet: FleetRecord[];
+  clients: Client[];
   onAddLoad: (load: Load) => void;
   onUpdateLoad: (load: Load) => void;
   onDeleteLoad: (id: string) => void;
@@ -34,7 +35,7 @@ const emptyForm: Partial<Load> = {
   observation: ''
 };
 
-export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onUpdateLoad, onDeleteLoad }) => {
+export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAddLoad, onUpdateLoad, onDeleteLoad }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<LoadStatus | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -319,8 +320,16 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
-                    <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm" placeholder="Nome do Cliente"
-                           value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} />
+                    <select 
+                        className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white"
+                        value={formData.client} 
+                        onChange={e => setFormData({...formData, client: e.target.value})}
+                    >
+                        <option value="">Selecione um cliente...</option>
+                        {clients.map(client => (
+                            <option key={client.id} value={client.companyName}>{client.companyName}</option>
+                        ))}
+                    </select>
                   </div>
                 </div>
 
@@ -406,7 +415,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                         <label className="block text-sm font-medium text-slate-700 mb-1">Valor Empresa</label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
-                            <input type="number" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
+                            <input type="number" step="0.01" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
                                 value={formData.companyValue} onChange={e => setFormData({...formData, companyValue: Number(e.target.value)})} />
                         </div>
                       </div>
@@ -414,7 +423,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                         <label className="block text-sm font-medium text-slate-700 mb-1">Valor Motorista</label>
                          <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
-                            <input type="number" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
+                            <input type="number" step="0.01" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
                                 value={formData.driverValue} onChange={e => setFormData({...formData, driverValue: Number(e.target.value)})} />
                          </div>
                       </div>
@@ -424,7 +433,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                         <label className="block text-sm font-medium text-slate-700 mb-1">Pedágio</label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
-                            <input type="number" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
+                            <input type="number" step="0.01" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
                                 value={formData.toll} onChange={e => setFormData({...formData, toll: Number(e.target.value)})} />
                         </div>
                       </div>
@@ -432,7 +441,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                         <label className="block text-sm font-medium text-slate-700 mb-1">Ad Valorem</label>
                          <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
-                            <input type="number" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
+                            <input type="number" step="0.01" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0.00"
                                 value={formData.adValorem} onChange={e => setFormData({...formData, adValorem: Number(e.target.value)})} />
                          </div>
                       </div>
@@ -450,10 +459,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, onAddLoad, onU
                         </label>
                    </div>
                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
-                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Valor Final Calculado</label>
-                       <div className="text-xl font-bold text-emerald-600">
-                           R$ {(Number(formData.companyValue || 0) - Number(formData.driverValue || 0)).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                       </div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Valor Final</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
+                            <input type="number" step="0.01" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-lg font-bold text-emerald-600 bg-white" placeholder="0.00"
+                                value={formData.finalValue} onChange={e => setFormData({...formData, finalValue: Number(e.target.value)})} />
+                        </div>
                    </div>
                 </div>
 
