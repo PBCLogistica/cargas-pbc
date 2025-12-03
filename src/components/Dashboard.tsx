@@ -11,6 +11,18 @@ interface DashboardProps {
   fleet: FleetRecord[];
 }
 
+// --- Helper Functions for Formatting ---
+const formatCurrency = (value: number) => 
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+const formatShortCurrency = (value: number) => {
+  if (value >= 1000) {
+    return `R$ ${(value / 1000).toFixed(1).replace('.', ',')}k`;
+  }
+  return formatCurrency(value);
+};
+
+
 export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   // --- State for Editable Goal & Refresh ---
   const [monthlyGoal, setMonthlyGoal] = useState(50000);
@@ -115,7 +127,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard 
             title="Faturamento Total" 
-            value={`R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={formatCurrency(totalRevenue)}
             icon={TrendingUp}
             color={{ bg: 'bg-emerald-50', text: 'text-emerald-600', iconText: 'text-emerald-600' }}
             subtext={`${percentReached.toFixed(1)}% da meta mensal`}
@@ -174,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                   <YAxis hide />
                   <Tooltip 
                      cursor={{fill: '#f8fafc'}}
-                     formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, '']}
+                     formatter={(value: number) => [formatCurrency(value), '']}
                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend />
@@ -182,7 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                     <LabelList 
                       dataKey="receita" 
                       position="top" 
-                      formatter={(value: number) => `R$${(value / 1000).toFixed(0)}k`}
+                      formatter={(value: number) => formatShortCurrency(value)}
                       style={{ fill: '#475569', fontSize: 12, fontWeight: 500 }}
                     />
                   </Bar>
@@ -216,7 +228,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                       <Cell key={`cell-${index}`} fill={fleetColors[index % fleetColors.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`} />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 </PieChart>
               </ResponsiveContainer>
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -259,14 +271,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                       <YAxis dataKey="name" type="category" width={110} tick={{fontSize: 11, fill: '#475569'}} />
                       <Tooltip 
                           cursor={{fill: '#f1f5f9'}}
-                          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']}
+                          formatter={(value: number) => [formatCurrency(value), 'Receita']}
                           contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                       />
                       <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} barSize={24}>
                         <LabelList 
                           dataKey="value" 
                           position="right" 
-                          formatter={(value: number) => `R$ ${(value / 1000).toFixed(1)}k`}
+                          formatter={(value: number) => formatShortCurrency(value)}
                           style={{ fill: '#334155', fontSize: 12, fontWeight: 500 }}
                         />
                       </Bar>
@@ -298,9 +310,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(val) => `R$${val/1000}k`} />
+                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(val) => formatShortCurrency(val)} />
                           <Tooltip 
-                              formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']}
+                              formatter={(value: number) => [formatCurrency(value), 'Receita']}
                               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                           />
                           <Area type="monotone" dataKey="valor" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValor)" />
