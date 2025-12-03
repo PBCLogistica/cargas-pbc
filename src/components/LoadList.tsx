@@ -10,7 +10,7 @@ interface LoadListProps {
   loads: Load[];
   fleet: FleetRecord[];
   clients: Client[];
-  onAddLoad: (load: Load) => void;
+  onAddLoad: (load: Omit<Load, 'id'>) => void;
   onUpdateLoad: (load: Load) => void;
   onDeleteLoad: (id: string) => void;
 }
@@ -111,7 +111,6 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       return;
     }
 
-    // Add to history
     if (formData.observation) {
       addObservation(formData.observation);
     }
@@ -119,11 +118,28 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     if (editingLoad) {
       onUpdateLoad({ ...editingLoad, ...formData });
     } else {
-      const newLoad: Load = {
-        id: `PBC-${(loads.length + 1).toString().padStart(3, '0')}`,
-        ...emptyForm,
-        ...formData
-      } as Load;
+      const newLoad: Omit<Load, 'id'> = {
+        date: formData.date || new Date().toISOString().split('T')[0],
+        client: formData.client || '',
+        origin: formData.origin || '',
+        destination: formData.destination || '',
+        driver: formData.driver || '',
+        vehicleType: formData.vehicleType || '',
+        truckPlate: formData.truckPlate || '',
+        trailerPlate: formData.trailerPlate || '',
+        weight: formData.weight || 0,
+        companyValue: formData.companyValue || 0,
+        driverValue: formData.driverValue || 0,
+        finalValue: formData.finalValue || 0,
+        toll: formData.toll || 0,
+        adValorem: formData.adValorem || 0,
+        icms: formData.icms === undefined ? true : formData.icms,
+        pisConfins: formData.pisConfins === undefined ? true : formData.pisConfins,
+        forecastDate: formData.forecastDate || '',
+        deliveryDate: formData.deliveryDate || '',
+        status: formData.status || LoadStatus.PENDING,
+        observation: formData.observation || ''
+      };
       onAddLoad(newLoad);
     }
     closeModal();

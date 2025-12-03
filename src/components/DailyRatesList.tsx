@@ -8,15 +8,13 @@ interface DailyRatesListProps {
   records: DailyRateRecord[];
   fleet: FleetRecord[];
   clients: Client[];
-  onAddRecord: (record: DailyRateRecord) => void;
+  onAddRecord: (record: Omit<DailyRateRecord, 'id'>) => void;
 }
 
-export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initialRecords, fleet, clients, onAddRecord }) => {
-  const [records, setRecords] = useState<DailyRateRecord[]>(initialRecords);
+export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, clients, onAddRecord }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState<Partial<DailyRateRecord>>({
     clientName: '',
     driverName: '',
@@ -30,7 +28,6 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
     hasAttachment: false
   });
 
-  // History Hook
   const [delayReasonHistory, addDelayReason] = useInputHistory('delayReason');
 
   const calculateHours = (start: string, end: string) => {
@@ -64,13 +61,11 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
         return;
     }
 
-    // Add to history
     if (formData.delayReason) {
       addDelayReason(formData.delayReason);
     }
 
-    const newRecord: DailyRateRecord = {
-        id: `DR-${(records.length + 1).toString().padStart(3, '0')}`,
+    const newRecord: Omit<DailyRateRecord, 'id'> = {
         clientName: formData.clientName || '',
         driverName: formData.driverName || '',
         truckPlate: formData.truckPlate || '',
@@ -84,7 +79,6 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records: initial
     };
 
     onAddRecord(newRecord);
-    setRecords([newRecord, ...records]);
     setIsModalOpen(false);
     setFormData({
         clientName: '',

@@ -8,7 +8,7 @@ import { useInputHistory } from '../hooks/useInputHistory';
 
 interface ClientListProps {
   clients: Client[];
-  onAddClient: (client: Client) => void;
+  onAddClient: (client: Omit<Client, 'id'>) => void;
   onUpdateClient: (client: Client) => void;
   onDeleteClient: (id: string) => void;
 }
@@ -57,18 +57,20 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
         return;
     }
     
-    // Add to history
     if (formData.productType) addProductType(formData.productType);
     if (formData.paymentTerm) addPaymentTerm(formData.paymentTerm);
 
     if (editingClient) {
       onUpdateClient({ ...editingClient, ...formData });
     } else {
-      const newClient: Client = {
-        id: `CLI-${(clients.length + 1).toString().padStart(3, '0')}`,
-        ...emptyForm,
-        ...formData
-      } as Client;
+      const newClient: Omit<Client, 'id'> = {
+        companyName: formData.companyName || '',
+        productType: formData.productType || '',
+        city: formData.city || '',
+        paymentType: formData.paymentType || 'Boleto',
+        paymentTerm: formData.paymentTerm || '',
+        contact: formData.contact || ''
+      };
       onAddClient(newClient);
     }
     closeModal();

@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 
 interface FleetListProps {
   records: FleetRecord[];
-  onAddRecord: (record: FleetRecord) => void;
+  onAddRecord: (record: Omit<FleetRecord, 'id'>) => void;
   onUpdateRecord: (record: FleetRecord) => void;
   onDeleteRecord: (id: string) => void;
 }
@@ -50,11 +50,14 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
     if (editingRecord) {
       onUpdateRecord({ ...editingRecord, ...formData });
     } else {
-      const newRecord: FleetRecord = {
-        id: `FL-${(records.length + 1).toString().padStart(3, '0')}`,
-        ...emptyForm,
-        ...formData
-      } as FleetRecord;
+      const newRecord: Omit<FleetRecord, 'id'> = {
+        driverName: formData.driverName || '',
+        truckPlate: formData.truckPlate || '',
+        trailerPlate: formData.trailerPlate || '',
+        truckType: formData.truckType || 'carreta baú',
+        ownershipType: formData.ownershipType || 'Frota',
+        capacity: formData.capacity || 0
+      };
       onAddRecord(newRecord);
     }
     closeModal();

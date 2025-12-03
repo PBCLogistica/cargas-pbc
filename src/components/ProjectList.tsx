@@ -7,7 +7,7 @@ import { useInputHistory } from '../hooks/useInputHistory';
 interface ProjectListProps {
   projects: Project[];
   clients: Client[];
-  onAddProject: (project: Project) => void;
+  onAddProject: (project: Omit<Project, 'id'>) => void;
   onUpdateProject: (project: Project) => void;
   onDeleteProject: (id: string) => void;
 }
@@ -38,7 +38,6 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
   const [paymentTermsHistory, addPaymentTerm] = useInputHistory('paymentTerm');
   const [responsibleHistory, addResponsible] = useInputHistory('responsible');
 
-  // Efeito para calcular o valor total automaticamente
   useEffect(() => {
     const valuePerLoad = formData.valuePerLoad || 0;
     const loadQuantity = formData.loadQuantity || 0;
@@ -79,11 +78,20 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
     if (editingProject) {
       onUpdateProject({ ...editingProject, ...formData });
     } else {
-      const newProject: Project = {
-        id: `PROJ-${(projects.length + 1).toString().padStart(3, '0')}`,
-        ...emptyForm,
-        ...formData
-      } as Project;
+      const newProject: Omit<Project, 'id'> = {
+        projectName: formData.projectName || '',
+        clientName: formData.clientName || '',
+        scope: formData.scope || '',
+        totalValue: formData.totalValue || 0,
+        valuePerLoad: formData.valuePerLoad || 0,
+        loadQuantity: formData.loadQuantity || 0,
+        paymentTerms: formData.paymentTerms || '',
+        startDate: formData.startDate || new Date().toISOString().split('T')[0],
+        deadline: formData.deadline || '',
+        status: formData.status || ProjectStatus.PLANNING,
+        responsible: formData.responsible || '',
+        notes: formData.notes || ''
+      };
       onAddProject(newProject);
     }
     closeModal();
