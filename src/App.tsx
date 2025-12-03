@@ -37,7 +37,7 @@ const App: React.FC = () => {
   if (!session) {
     return <Login />;
   } else {
-    return <MainLayout supabase={supabase} />;
+    return <MainLayout supabase={supabase} user={session.user} />;
   }
 };
 

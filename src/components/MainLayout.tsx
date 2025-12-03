@@ -10,179 +10,194 @@ import { FreightCalculator } from './FreightCalculator';
 import { AIAssistant } from './AIAssistant';
 import { Settings } from './Settings';
 import { ProjectList } from './ProjectList';
-import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES, MOCK_PROJECTS } from '../constants';
-import { ViewState, FleetRecord, Client, DailyRateRecord, Load, Project } from '../types';
-import { Menu, Bell, Save, CheckCircle } from 'lucide-react';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { ViewState, FleetRecord, Client, DailyRateRecord, Load, Project, LoadStatus } from '../types';
+import { Menu, Bell } from 'lucide-react';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 
 interface MainLayoutProps {
   supabase: SupabaseClient;
+  user: User;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   
-  // User Profile State
   const [userName, setUserName] = useState('Admin Usuário');
   const [userAvatar, setUserAvatar] = useState('https://picsum.photos/100/100');
 
-  // Lifted state for app data
-  const [loads, setLoads] = useState<Load[]>(MOCK_LOADS);
-  const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>(MOCK_FLEET);
-  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
-  const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>(MOCK_DAILY_RATES);
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const [loads, setLoads] = useState<Load[]>([]);
+  const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  // Load data from localStorage on initial render
-  useEffect(() => {
-    try {
-      const savedLoads = localStorage.getItem('cargas_pbc_loads');
-      if (savedLoads) setLoads(JSON.parse(savedLoads));
-
-      const savedFleet = localStorage.getItem('cargas_pbc_fleet');
-      if (savedFleet) setFleetRecords(JSON.parse(savedFleet));
-
-      const savedClients = localStorage.getItem('cargas_pbc_clients');
-      if (savedClients) setClients(JSON.parse(savedClients));
-
-      const savedDailyRates = localStorage.getItem('cargas_pbc_dailyRates');
-      if (savedDailyRates) setDailyRates(JSON.parse(savedDailyRates));
-
-      const savedProjects = localStorage.getItem('cargas_pbc_projects');
-      if (savedProjects) setProjects(JSON.parse(savedProjects));
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-    }
-  }, []);
-
-  const handleSaveChanges = () => {
-    setIsSaving(true);
-    try {
-      localStorage.setItem('cargas_pbc_loads', JSON.stringify(loads));
-      localStorage.setItem('cargas_pbc_fleet', JSON.stringify(fleetRecords));
-      localStorage.setItem('cargas_pbc_clients', JSON.stringify(clients));
-      localStorage.setItem('cargas_pbc_dailyRates', JSON.stringify(dailyRates));
-      localStorage.setItem('cargas_pbc_projects', JSON.stringify(projects));
-      
-      setTimeout(() => {
-        setIsSaving(false);
-      }, 1500);
-
-    } catch (error) {
-      console.error("Failed to save data to localStorage", error);
-      alert('Ocorreu um erro ao salvar as alterações.');
-      setIsSaving(false);
-    }
+  const logActivity = async (action: string, entity_type: string, entity_id: string, details: object) => {
+    if (!user || !user.email) return;
+    await supabase.from('activity_log').insert({
+      user_email: user.email,
+      action,
+      entity_type,
+      entity_id,
+      details
+    });
   };
 
-  const handleProfileUpdate = (newName: string, newAvatar: string) => {
+  useEffect(() => {
+    const fetchAllData = async () => {
+      const [loadsRes, fleetRes, clientsRes, dailyRatesRes, projectsRes, profileRes] = await Promise.all([
+        supabase.from('loads').select('*').order('created_at', { ascending: false }),
+        supabase.from('fleet').select('*').order('created_at', { ascending: false }),
+        supabase.from('clients').select('*').order('created_at', { ascending: false }),
+        supabase.from('daily_rates').select('*').order('created_at', { ascending: false }),
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).single()
+      ]);
+
+      if (loadsRes.data) setLoads(loadsRes.data as Load[]);
+      if (fleetRes.data) setFleetRecords(fleetRes.data as FleetRecord[]);
+      if (clientsRes.data) setClients(clientsRes.data as Client[]);
+      if (dailyRatesRes.data) setDailyRates(dailyRatesRes.data as DailyRateRecord[]);
+      if (projectsRes.data) setProjects(projectsRes.data as Project[]);
+      if (profileRes.data) {
+        setUserName(profileRes.data.full_name || user.email || 'Usuário');
+        setUserAvatar(profileRes.data.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`);
+      }
+    };
+
+    fetchAllData();
+  }, [supabase, user]);
+
+  const handleProfileUpdate = async (newName: string, newAvatar: string) => {
     setUserName(newName);
     setUserAvatar(newAvatar);
-  };
-
-  const handleAddLoad = (newLoad: Load) => {
-    setLoads([newLoad, ...loads]);
-  };
-
-  const handleUpdateLoad = (updatedLoad: Load) => {
-    setLoads(loads.map(load => (load.id === updatedLoad.id ? updatedLoad : load)));
-  };
-
-  const handleDeleteLoad = (id: string) => {
-    setLoads(loads.filter(load => load.id !== id));
-  };
-
-  const handleAddFleetRecord = (newRecord: FleetRecord) => {
-    setFleetRecords([...fleetRecords, newRecord]);
-  };
-
-  const handleUpdateFleetRecord = (updatedRecord: FleetRecord) => {
-    const originalRecord = fleetRecords.find(f => f.id === updatedRecord.id);
-    if (!originalRecord) return;
-
-    setFleetRecords(fleetRecords.map(record => (record.id === updatedRecord.id ? updatedRecord : record)));
-
-    // Propagate changes to other data sets
-    setLoads(prevLoads => 
-      prevLoads.map(load => {
-        if (load.driver === originalRecord.driverName) {
-          return {
-            ...load,
-            driver: updatedRecord.driverName,
-            truckPlate: updatedRecord.truckPlate,
-            trailerPlate: updatedRecord.trailerPlate,
-            vehicleType: updatedRecord.truckType,
-            weight: updatedRecord.capacity
-          };
-        }
-        return load;
-      })
-    );
-
-    setDailyRates(prevDailyRates => 
-      prevDailyRates.map(rate => {
-        if (rate.driverName === originalRecord.driverName) {
-          return {
-            ...rate,
-            driverName: updatedRecord.driverName,
-            truckPlate: updatedRecord.truckPlate,
-            trailerPlate: updatedRecord.trailerPlate
-          };
-        }
-        return rate;
-      })
-    );
-  };
-
-  const handleDeleteFleetRecord = (id: string) => {
-    setFleetRecords(fleetRecords.filter(record => record.id !== id));
-  };
-
-  const handleAddClient = (newClient: Client) => {
-    setClients([...clients, newClient]);
-  };
-
-  const handleUpdateClient = (updatedClient: Client) => {
-    const originalClient = clients.find(c => c.id === updatedClient.id);
-    if (!originalClient) return;
-
-    setClients(clients.map(client => (client.id === updatedClient.id ? updatedClient : client)));
-
-    // Propagate name change if it occurred
-    if (originalClient.companyName !== updatedClient.companyName) {
-      setLoads(prevLoads => 
-        prevLoads.map(load => 
-          load.client === originalClient.companyName ? { ...load, client: updatedClient.companyName } : load
-        )
-      );
-      setDailyRates(prevDailyRates => 
-        prevDailyRates.map(rate => 
-          rate.clientName === originalClient.companyName ? { ...rate, clientName: updatedClient.companyName } : rate
-        )
-      );
+    const { error } = await supabase.from('profiles').update({ full_name: newName, avatar_url: newAvatar, updated_at: new Date().toISOString() }).eq('id', user.id);
+    if (!error) {
+      await logActivity('update', 'profile', user.id, { name: newName });
     }
   };
 
-  const handleDeleteClient = (id: string) => {
-    setClients(clients.filter(client => client.id !== id));
+  // --- CRUD Handlers ---
+
+  const handleAddLoad = async (newLoad: Omit<Load, 'id'>) => {
+    const loadWithMeta = { ...newLoad, id: `PBC-${Date.now()}`, updated_by: user.email };
+    const { data, error } = await supabase.from('loads').insert(loadWithMeta).select().single();
+    if (data) {
+      setLoads(prev => [data as Load, ...prev]);
+      await logActivity('create', 'load', data.id, data);
+    }
   };
 
-  const handleAddDailyRate = (newRecord: DailyRateRecord) => {
-    setDailyRates([...dailyRates, newRecord]);
+  const handleUpdateLoad = async (updatedLoad: Load) => {
+    const { data, error } = await supabase.from('loads').update({ ...updatedLoad, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedLoad.id).select().single();
+    if (data) {
+      setLoads(prev => prev.map(l => l.id === data.id ? data as Load : l));
+      await logActivity('update', 'load', data.id, data);
+    }
   };
 
-  const handleAddProject = (newProject: Project) => {
-    setProjects([newProject, ...projects]);
+  const handleDeleteLoad = async (id: string) => {
+    const { error } = await supabase.from('loads').delete().eq('id', id);
+    if (!error) {
+      setLoads(prev => prev.filter(l => l.id !== id));
+      await logActivity('delete', 'load', id, { id });
+    }
+  };
+  
+  const handleUpdateLoadFromTracking = async (loadId: string, deliveryDate: string) => {
+    const loadToUpdate = loads.find(l => l.id === loadId);
+    if (!loadToUpdate) return;
+
+    const updatedLoadData = { 
+      ...loadToUpdate, 
+      status: LoadStatus.DELIVERED, 
+      deliveryDate: deliveryDate.split('T')[0]
+    };
+    await handleUpdateLoad(updatedLoadData);
   };
 
-  const handleUpdateProject = (updatedProject: Project) => {
-    setProjects(projects.map(p => (p.id === updatedProject.id ? updatedProject : p)));
+  const handleAddFleetRecord = async (newRecord: Omit<FleetRecord, 'id'>) => {
+    const recordWithMeta = { ...newRecord, id: `FL-${Date.now()}`, updated_by: user.email };
+    const { data } = await supabase.from('fleet').insert(recordWithMeta).select().single();
+    if (data) {
+      setFleetRecords(prev => [data as FleetRecord, ...prev]);
+      await logActivity('create', 'fleet', data.id, data);
+    }
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
+  const handleUpdateFleetRecord = async (updatedRecord: FleetRecord) => {
+    const { data } = await supabase.from('fleet').update({ ...updatedRecord, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedRecord.id).select().single();
+    if (data) {
+      setFleetRecords(prev => prev.map(r => r.id === data.id ? data as FleetRecord : r));
+      await logActivity('update', 'fleet', data.id, data);
+    }
+  };
+
+  const handleDeleteFleetRecord = async (id: string) => {
+    const { error } = await supabase.from('fleet').delete().eq('id', id);
+    if (!error) {
+      setFleetRecords(prev => prev.filter(r => r.id !== id));
+      await logActivity('delete', 'fleet', id, { id });
+    }
+  };
+
+  const handleAddClient = async (newClient: Omit<Client, 'id'>) => {
+    const clientWithMeta = { ...newClient, id: `CLI-${Date.now()}`, updated_by: user.email };
+    const { data } = await supabase.from('clients').insert(clientWithMeta).select().single();
+    if (data) {
+      setClients(prev => [data as Client, ...prev]);
+      await logActivity('create', 'client', data.id, data);
+    }
+  };
+
+  const handleUpdateClient = async (updatedClient: Client) => {
+    const { data } = await supabase.from('clients').update({ ...updatedClient, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedClient.id).select().single();
+    if (data) {
+      setClients(prev => prev.map(c => c.id === data.id ? data as Client : c));
+      await logActivity('update', 'client', data.id, data);
+    }
+  };
+
+  const handleDeleteClient = async (id: string) => {
+    const { error } = await supabase.from('clients').delete().eq('id', id);
+    if (!error) {
+      setClients(prev => prev.filter(c => c.id !== id));
+      await logActivity('delete', 'client', id, { id });
+    }
+  };
+
+  const handleAddDailyRate = async (newRecord: Omit<DailyRateRecord, 'id'>) => {
+    const recordWithMeta = { ...newRecord, id: `DR-${Date.now()}`, updated_by: user.email };
+    const { data } = await supabase.from('daily_rates').insert(recordWithMeta).select().single();
+    if (data) {
+      setDailyRates(prev => [data as DailyRateRecord, ...prev]);
+      await logActivity('create', 'daily_rate', data.id, data);
+    }
+  };
+
+  const handleAddProject = async (newProject: Omit<Project, 'id'>) => {
+    const projectWithMeta = { ...newProject, id: `PROJ-${Date.now()}`, updated_by: user.email };
+    const { data } = await supabase.from('projects').insert(projectWithMeta).select().single();
+    if (data) {
+      setProjects(prev => [data as Project, ...prev]);
+      await logActivity('create', 'project', data.id, data);
+    }
+  };
+
+  const handleUpdateProject = async (updatedProject: Project) => {
+    const { data } = await supabase.from('projects').update({ ...updatedProject, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedProject.id).select().single();
+    if (data) {
+      setProjects(prev => prev.map(p => p.id === data.id ? data as Project : p));
+      await logActivity('update', 'project', data.id, data);
+    }
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (!error) {
+      setProjects(prev => prev.filter(p => p.id !== id));
+      await logActivity('delete', 'project', id, { id });
+    }
   };
 
   const handleLogout = async () => {
@@ -191,95 +206,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'dashboard':
-        return <Dashboard loads={loads} fleet={fleetRecords} />;
-      case 'loads':
-        return <LoadList loads={loads} fleet={fleetRecords} clients={clients} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
-      case 'projects':
-        return <ProjectList projects={projects} clients={clients} onAddProject={handleAddProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} />;
-      case 'fleet':
-        return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
-      case 'clients':
-        return <ClientList clients={clients} onAddClient={handleAddClient} onUpdateClient={handleUpdateClient} onDeleteClient={handleDeleteClient} />;
-      case 'daily_rates':
-        return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
-      case 'tracking':
-        return <TrackingView loads={loads} />;
-      case 'calculator':
-        return <FreightCalculator />;
-      case 'assistant':
-        return <AIAssistant loads={loads} />;
-      case 'settings':
-        return <Settings currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
-      default:
-        return <Dashboard loads={loads} fleet={fleetRecords} />;
+      case 'dashboard': return <Dashboard loads={loads} fleet={fleetRecords} />;
+      case 'loads': return <LoadList loads={loads} fleet={fleetRecords} clients={clients} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
+      case 'projects': return <ProjectList projects={projects} clients={clients} onAddProject={handleAddProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} />;
+      case 'fleet': return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
+      case 'clients': return <ClientList clients={clients} onAddClient={handleAddClient} onUpdateClient={handleUpdateClient} onDeleteClient={handleDeleteClient} />;
+      case 'daily_rates': return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
+      case 'tracking': return <TrackingView loads={loads} supabase={supabase} onUpdateLoad={handleUpdateLoadFromTracking} />;
+      case 'calculator': return <FreightCalculator />;
+      case 'assistant': return <AIAssistant loads={loads} />;
+      case 'settings': return <Settings currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
+      default: return <Dashboard loads={loads} fleet={fleetRecords} />;
     }
   };
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
-      {/* Sidebar Navigation */}
-      <Sidebar 
-        currentView={currentView} 
-        onChangeView={setCurrentView} 
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        handleLogout={handleLogout}
-      />
-
-      {/* Main Content Area */}
+      <Sidebar currentView={currentView} onChangeView={setCurrentView} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} handleLogout={handleLogout} />
       <main className="flex-1 flex flex-col h-full w-full relative overflow-hidden">
-        {/* Top Header */}
         <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-            >
-              <Menu size={24} />
-            </button>
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><Menu size={24} /></button>
             <h2 className="text-lg font-semibold text-slate-800 hidden sm:block">
-              {currentView === 'dashboard' && 'Visão Geral'}
-              {currentView === 'loads' && 'Minhas Cargas'}
-              {currentView === 'projects' && 'Projetos e Contratos'}
-              {currentView === 'fleet' && 'Gestão de Frota'}
-              {currentView === 'clients' && 'Base de Clientes'}
-              {currentView === 'daily_rates' && 'Controle de Diárias'}
-              {currentView === 'tracking' && 'Rastreamento em Tempo Real'}
-              {currentView === 'calculator' && 'Calculadora de Frete (ANTT)'}
-              {currentView === 'assistant' && 'Inteligência Artificial'}
-              {currentView === 'settings' && 'Preferências'}
+              {currentView.charAt(0).toUpperCase() + currentView.slice(1).replace('_', ' ')}
             </h2>
           </div>
-
           <div className="flex items-center gap-4">
-             <button 
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm
-                    ${isSaving 
-                        ? 'bg-emerald-600 text-white cursor-not-allowed' 
-                        : 'bg-emerald-500 text-white hover:bg-emerald-600'}
-                `}
-             >
-                {isSaving ? (
-                    <>
-                        <CheckCircle size={18} />
-                        Salvo!
-                    </>
-                ) : (
-                    <>
-                        <Save size={18} />
-                        Salvar Alterações
-                    </>
-                )}
-             </button>
-
             <button className="relative p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
-            
             <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-slate-900">{userName}</p>
@@ -291,8 +247,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
             </div>
           </div>
         </header>
-
-        {/* Dynamic Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto h-full">
                 {renderContent()}

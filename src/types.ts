@@ -39,6 +39,7 @@ export interface Load {
   // Meta
   status: LoadStatus;
   observation: string;
+  updated_by?: string;
 }
 
 export interface FleetRecord {
@@ -49,6 +50,7 @@ export interface FleetRecord {
   truckType: string;
   ownershipType: 'Frota' | 'Terceiro';
   capacity: number; // in kg
+  updated_by?: string;
 }
 
 export interface Client {
@@ -59,6 +61,7 @@ export interface Client {
   paymentType: 'Boleto' | 'Depósito';
   paymentTerm: string; // e.g. "30 dias"
   contact: string;
+  updated_by?: string;
 }
 
 export interface DailyRateRecord {
@@ -73,6 +76,7 @@ export interface DailyRateRecord {
   dailyRateQuantity: number;
   delayReason: string;
   hasAttachment: boolean;
+  updated_by?: string;
 }
 
 export interface TrackingUpdate {
@@ -122,6 +126,7 @@ export interface Project {
   status: ProjectStatus;
   responsible: string;
   notes?: string;
+  updated_by?: string;
 }
 
 export type ViewState = 'dashboard' | 'loads' | 'projects' | 'fleet' | 'clients' | 'daily_rates' | 'tracking' | 'calculator' | 'assistant' | 'settings';
