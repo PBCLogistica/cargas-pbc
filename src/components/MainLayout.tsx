@@ -13,6 +13,7 @@ import { ProjectList } from './ProjectList';
 import { ViewState, FleetRecord, Client, DailyRateRecord, Load, Project, LoadStatus } from '../types';
 import { Menu, Bell } from 'lucide-react';
 import { SupabaseClient, User } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 interface MainLayoutProps {
   supabase: SupabaseClient;
@@ -72,16 +73,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     setUserName(newName);
     setUserAvatar(newAvatar);
     const { error } = await supabase.from('profiles').update({ full_name: newName, avatar_url: newAvatar, updated_at: new Date().toISOString() }).eq('id', user.id);
-    if (!error) {
-      await logActivity('update', 'profile', user.id, { name: newName });
+    if (error) {
+      console.error("Error updating profile:", error);
+      return;
     }
+    await logActivity('update', 'profile', user.id, { name: newName });
   };
 
   // --- CRUD Handlers ---
 
   const handleAddLoad = async (newLoad: Omit<Load, 'id'>) => {
-    const loadWithMeta = { ...newLoad, id: `PBC-${Date.now()}`, updated_by: user.email };
+    const loadWithMeta = { ...newLoad, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('loads').insert(loadWithMeta).select().single();
+    if (error) {
+      console.error("Error adding load:", error);
+      return;
+    }
     if (data) {
       setLoads(prev => [data as Load, ...prev]);
       await logActivity('create', 'load', data.id, data);
@@ -90,6 +97,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   const handleUpdateLoad = async (updatedLoad: Load) => {
     const { data, error } = await supabase.from('loads').update({ ...updatedLoad, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedLoad.id).select().single();
+    if (error) {
+      console.error("Error updating load:", error);
+      return;
+    }
     if (data) {
       setLoads(prev => prev.map(l => l.id === data.id ? data as Load : l));
       await logActivity('update', 'load', data.id, data);
@@ -98,10 +109,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   const handleDeleteLoad = async (id: string) => {
     const { error } = await supabase.from('loads').delete().eq('id', id);
-    if (!error) {
-      setLoads(prev => prev.filter(l => l.id !== id));
-      await logActivity('delete', 'load', id, { id });
+    if (error) {
+      console.error("Error deleting load:", error);
+      return;
     }
+    setLoads(prev => prev.filter(l => l.id !== id));
+    await logActivity('delete', 'load', id, { id });
   };
   
   const handleUpdateLoadFromTracking = async (loadId: string, deliveryDate: string) => {
@@ -117,8 +130,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   };
 
   const handleAddFleetRecord = async (newRecord: Omit<FleetRecord, 'id'>) => {
-    const recordWithMeta = { ...newRecord, id: `FL-${Date.now()}`, updated_by: user.email };
-    const { data } = await supabase.from('fleet').insert(recordWithMeta).select().single();
+    const recordWithMeta = { ...newRecord, id: uuidv4(), updated_by: user.email };
+    const { data, error } = await supabase.from('fleet').insert(recordWithMeta).select().single();
+    if (error) {
+      console.error("Error adding fleet record:", error);
+      return;
+    }
     if (data) {
       setFleetRecords(prev => [data as FleetRecord, ...prev]);
       await logActivity('create', 'fleet', data.id, data);
@@ -126,7 +143,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   };
 
   const handleUpdateFleetRecord = async (updatedRecord: FleetRecord) => {
-    const { data } = await supabase.from('fleet').update({ ...updatedRecord, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedRecord.id).select().single();
+    const { data, error } = await supabase.from('fleet').update({ ...updatedRecord, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedRecord.id).select().single();
+    if (error) {
+      console.error("Error updating fleet record:", error);
+      return;
+    }
     if (data) {
       setFleetRecords(prev => prev.map(r => r.id === data.id ? data as FleetRecord : r));
       await logActivity('update', 'fleet', data.id, data);
@@ -135,15 +156,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   const handleDeleteFleetRecord = async (id: string) => {
     const { error } = await supabase.from('fleet').delete().eq('id', id);
-    if (!error) {
-      setFleetRecords(prev => prev.filter(r => r.id !== id));
-      await logActivity('delete', 'fleet', id, { id });
+    if (error) {
+      console.error("Error deleting fleet record:", error);
+      return;
     }
+    setFleetRecords(prev => prev.filter(r => r.id !== id));
+    await logActivity('delete', 'fleet', id, { id });
   };
 
   const handleAddClient = async (newClient: Omit<Client, 'id'>) => {
-    const clientWithMeta = { ...newClient, id: `CLI-${Date.now()}`, updated_by: user.email };
-    const { data } = await supabase.from('clients').insert(clientWithMeta).select().single();
+    const clientWithMeta = { ...newClient, id: uuidv4(), updated_by: user.email };
+    const { data, error } = await supabase.from('clients').insert(clientWithMeta).select().single();
+    if (error) {
+      console.error("Error adding client:", error);
+      return;
+    }
     if (data) {
       setClients(prev => [data as Client, ...prev]);
       await logActivity('create', 'client', data.id, data);
@@ -151,7 +178,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   };
 
   const handleUpdateClient = async (updatedClient: Client) => {
-    const { data } = await supabase.from('clients').update({ ...updatedClient, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedClient.id).select().single();
+    const { data, error } = await supabase.from('clients').update({ ...updatedClient, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedClient.id).select().single();
+    if (error) {
+      console.error("Error updating client:", error);
+      return;
+    }
     if (data) {
       setClients(prev => prev.map(c => c.id === data.id ? data as Client : c));
       await logActivity('update', 'client', data.id, data);
@@ -160,15 +191,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   const handleDeleteClient = async (id: string) => {
     const { error } = await supabase.from('clients').delete().eq('id', id);
-    if (!error) {
-      setClients(prev => prev.filter(c => c.id !== id));
-      await logActivity('delete', 'client', id, { id });
+    if (error) {
+      console.error("Error deleting client:", error);
+      return;
     }
+    setClients(prev => prev.filter(c => c.id !== id));
+    await logActivity('delete', 'client', id, { id });
   };
 
   const handleAddDailyRate = async (newRecord: Omit<DailyRateRecord, 'id'>) => {
-    const recordWithMeta = { ...newRecord, id: `DR-${Date.now()}`, updated_by: user.email };
-    const { data } = await supabase.from('daily_rates').insert(recordWithMeta).select().single();
+    const recordWithMeta = { ...newRecord, id: uuidv4(), updated_by: user.email };
+    const { data, error } = await supabase.from('daily_rates').insert(recordWithMeta).select().single();
+    if (error) {
+      console.error("Error adding daily rate:", error);
+      return;
+    }
     if (data) {
       setDailyRates(prev => [data as DailyRateRecord, ...prev]);
       await logActivity('create', 'daily_rate', data.id, data);
@@ -176,8 +213,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   };
 
   const handleAddProject = async (newProject: Omit<Project, 'id'>) => {
-    const projectWithMeta = { ...newProject, id: `PROJ-${Date.now()}`, updated_by: user.email };
-    const { data } = await supabase.from('projects').insert(projectWithMeta).select().single();
+    const projectWithMeta = { ...newProject, id: uuidv4(), updated_by: user.email };
+    const { data, error } = await supabase.from('projects').insert(projectWithMeta).select().single();
+    if (error) {
+      console.error("Error adding project:", error);
+      return;
+    }
     if (data) {
       setProjects(prev => [data as Project, ...prev]);
       await logActivity('create', 'project', data.id, data);
@@ -185,7 +226,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   };
 
   const handleUpdateProject = async (updatedProject: Project) => {
-    const { data } = await supabase.from('projects').update({ ...updatedProject, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedProject.id).select().single();
+    const { data, error } = await supabase.from('projects').update({ ...updatedProject, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedProject.id).select().single();
+    if (error) {
+      console.error("Error updating project:", error);
+      return;
+    }
     if (data) {
       setProjects(prev => prev.map(p => p.id === data.id ? data as Project : p));
       await logActivity('update', 'project', data.id, data);
@@ -194,10 +239,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   const handleDeleteProject = async (id: string) => {
     const { error } = await supabase.from('projects').delete().eq('id', id);
-    if (!error) {
-      setProjects(prev => prev.filter(p => p.id !== id));
-      await logActivity('delete', 'project', id, { id });
+    if (error) {
+      console.error("Error deleting project:", error);
+      return;
     }
+    setProjects(prev => prev.filter(p => p.id !== id));
+    await logActivity('delete', 'project', id, { id });
   };
 
   const handleLogout = async () => {
