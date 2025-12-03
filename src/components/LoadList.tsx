@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Load, LoadStatus, FleetRecord, Client } from '../types';
-import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil, Building2 } from 'lucide-react';
+import { Search, Filter, MoreVertical, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil, Building2, User } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
@@ -18,6 +18,7 @@ interface LoadListProps {
 const emptyForm: Partial<Load> = {
   date: new Date().toISOString().split('T')[0],
   client: '',
+  tomador: '',
   origin: '',
   destination: '',
   driver: '',
@@ -89,6 +90,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       load.driver.toLowerCase().includes(searchTermLower) ||
       load.id.toLowerCase().includes(searchTermLower) ||
       load.client.toLowerCase().includes(searchTermLower) ||
+      (load.tomador && load.tomador.toLowerCase().includes(searchTermLower)) ||
       (load.numeric_id && load.numeric_id.toString().includes(searchTermLower));
     
     const matchesStatus = filterStatus === 'All' || load.status === filterStatus;
@@ -123,6 +125,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       const newLoad: Omit<Load, 'id' | 'numeric_id'> = {
         date: formData.date || new Date().toISOString().split('T')[0],
         client: formData.client || '',
+        tomador: formData.tomador || '',
         origin: formData.origin || '',
         destination: formData.destination || '',
         driver: formData.driver || '',
@@ -163,6 +166,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       'ID Carga': load.numeric_id,
       'Data Emissão': load.date,
       'Cliente': load.client,
+      'Tomador do Frete': load.tomador,
       'Origem': load.origin,
       'Destino': load.destination,
       'Motorista': load.driver,
@@ -288,6 +292,9 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                     <Building2 size={14} className="text-slate-400" />
                     {load.client}
                   </div>
+                  {load.tomador && (
+                    <div className="text-xs text-slate-500 mt-1 pl-6">Tomador: {load.tomador}</div>
+                  )}
                   <div className="flex flex-col gap-1 mt-2 pl-6">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
@@ -390,6 +397,16 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                             <option key={client.id} value={client.companyname}>{client.companyname}</option>
                         ))}
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Tomador do Frete</label>
+                    <input 
+                        type="text" 
+                        className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                        placeholder="Nome ou CNPJ do pagador"
+                        value={formData.tomador} 
+                        onChange={e => setFormData({...formData, tomador: e.target.value})}
+                    />
                   </div>
                 </div>
 

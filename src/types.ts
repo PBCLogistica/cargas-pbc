@@ -30,6 +30,7 @@ export interface Load {
   pisconfins: boolean;
   status: LoadStatus;
   observation: string;
+  tomador?: string;
   updated_by?: string;
 }
 
