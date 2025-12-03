@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project, ProjectStatus, Client } from '../types';
 import { Search, Plus, X, Save, Trash2, Download, Pencil, Briefcase, DollarSign, Calendar, User, Filter } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -37,6 +37,17 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
 
   const [paymentTermsHistory, addPaymentTerm] = useInputHistory('paymentTerm');
   const [responsibleHistory, addResponsible] = useInputHistory('responsible');
+
+  // Efeito para calcular o valor total automaticamente
+  useEffect(() => {
+    const valuePerLoad = formData.valuePerLoad || 0;
+    const loadQuantity = formData.loadQuantity || 0;
+    const newTotalValue = valuePerLoad * loadQuantity;
+
+    if (newTotalValue !== formData.totalValue) {
+      setFormData(prev => ({ ...prev, totalValue: newTotalValue }));
+    }
+  }, [formData.valuePerLoad, formData.loadQuantity, formData.totalValue]);
 
   const openModalForNew = () => {
     setEditingProject(null);
@@ -275,22 +286,27 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$)</label>
-                  <input type="number" value={formData.totalValue} onChange={e => setFormData({...formData, totalValue: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Condições de Pagamento</label>
-                  <input type="text" value={formData.paymentTerms} onChange={e => setFormData({...formData, paymentTerms: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: 30/60/90 dias" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Valor por Carga (R$)</label>
                   <input type="number" value={formData.valuePerLoad} onChange={e => setFormData({...formData, valuePerLoad: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de Cargas</label>
                   <input type="number" value={formData.loadQuantity} onChange={e => setFormData({...formData, loadQuantity: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$)</label>
+                  <input 
+                    type="text" 
+                    value={(formData.totalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                    className="w-full p-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500" 
+                    readOnly 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Condições de Pagamento</label>
+                  <input type="text" value={formData.paymentTerms} onChange={e => setFormData({...formData, paymentTerms: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: 30/60/90 dias" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
