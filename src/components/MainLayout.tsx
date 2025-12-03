@@ -10,6 +10,7 @@ import { FreightCalculator } from './FreightCalculator';
 import { AIAssistant } from './AIAssistant';
 import { Settings } from './Settings';
 import { ProjectList } from './ProjectList';
+import { BillingView } from './BillingView';
 import { ViewState, FleetRecord, Client, DailyRateRecord, Load, Project, LoadStatus } from '../types';
 import { Menu, Bell } from 'lucide-react';
 import { SupabaseClient, User } from '@supabase/supabase-js';
@@ -293,6 +294,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     switch (currentView) {
       case 'dashboard': return <Dashboard loads={loads} fleet={fleetRecords} />;
       case 'loads': return <LoadList loads={loads} fleet={fleetRecords} clients={clients} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
+      case 'billing': return <BillingView loads={loads} />;
       case 'projects': return <ProjectList projects={projects} clients={clients} onAddProject={handleAddProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} />;
       case 'fleet': return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients': return <ClientList clients={clients} onAddClient={handleAddClient} onUpdateClient={handleUpdateClient} onDeleteClient={handleDeleteClient} />;

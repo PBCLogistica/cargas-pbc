@@ -124,4 +124,4 @@ export interface Project {
   updated_by?: string;
 }
 
-export type ViewState = 'dashboard' | 'loads' | 'projects' | 'fleet' | 'clients' | 'daily_rates' | 'tracking' | 'calculator' | 'assistant' | 'settings';
+export type ViewState = 'dashboard' | 'loads' | 'projects' | 'fleet' | 'clients' | 'daily_rates' | 'tracking' | 'calculator' | 'assistant' | 'settings' | 'billing';

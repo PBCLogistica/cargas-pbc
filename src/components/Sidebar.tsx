@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Truck, Bot, Settings, LogOut, Box, Users, MapPin, Calculator, Building2, Timer, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Truck, Bot, Settings, LogOut, Box, Users, MapPin, Calculator, Building2, Timer, Briefcase, FileText } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface SidebarProps {
@@ -14,6 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isO
   const menuItems = [
     { id: 'dashboard', label: 'Painel Geral', icon: LayoutDashboard },
     { id: 'loads', label: 'Gerenciar Cargas', icon: Truck },
+    { id: 'billing', label: 'Faturamento', icon: FileText },
     { id: 'projects', label: 'Projetos Fechados', icon: Briefcase },
     { id: 'clients', label: 'Clientes', icon: Building2 },
     { id: 'fleet', label: 'Frota e Motoristas', icon: Users },
