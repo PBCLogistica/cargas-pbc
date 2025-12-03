@@ -77,7 +77,11 @@ export const Settings: React.FC<SettingsProps> = ({ supabase, user, currentName,
         <div className="flex items-center gap-6">
           <div className="relative group">
             <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden flex-shrink-0">
-              <img src={avatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-slate-200 animate-pulse" />
+              )}
             </div>
             <button
               onClick={triggerFileSelect}
@@ -113,7 +117,7 @@ export const Settings: React.FC<SettingsProps> = ({ supabase, user, currentName,
             <input
               id="name"
               type="text"
-              value={name}
+              value={name || ''}
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome"
               className="w-full pl-9 p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"

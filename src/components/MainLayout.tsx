@@ -25,8 +25,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  const [userName, setUserName] = useState('Admin Usuário');
-  const [userAvatar, setUserAvatar] = useState('https://picsum.photos/100/100');
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   const [loads, setLoads] = useState<Load[]>([]);
   const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>([]);
@@ -61,9 +61,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
       if (clientsRes.data) setClients(clientsRes.data as Client[]);
       if (dailyRatesRes.data) setDailyRates(dailyRatesRes.data as DailyRateRecord[]);
       if (projectsRes.data) setProjects(projectsRes.data as Project[]);
+      
       if (profileRes.data) {
-        setUserName(profileRes.data.full_name || user.email || 'Usuário');
-        setUserAvatar(profileRes.data.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`);
+        const emailName = user.email?.split('@')[0] || 'Usuário';
+        setUserName(profileRes.data.full_name || emailName);
+        setUserAvatar(profileRes.data.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileRes.data.full_name || emailName)}&background=random`);
+      } else {
+        const emailName = user.email?.split('@')[0] || 'Usuário';
+        setUserName(emailName);
+        setUserAvatar(`https://ui-avatars.com/api/?name=${encodeURIComponent(emailName)}&background=random`);
       }
     };
 
@@ -302,7 +308,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
       case 'tracking': return <TrackingView loads={loads} supabase={supabase} onUpdateLoad={handleUpdateLoadFromTracking} />;
       case 'calculator': return <FreightCalculator />;
       case 'assistant': return <AIAssistant loads={loads} />;
-      case 'settings': return <Settings supabase={supabase} user={user} currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
+      case 'settings': return <Settings supabase={supabase} user={user} currentName={userName || ''} currentAvatar={userAvatar || ''} onProfileUpdate={handleProfileUpdate} />;
       default: return <Dashboard loads={loads} fleet={fleetRecords} />;
     }
   };
@@ -324,13 +330,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">{userName}</p>
-                <p className="text-xs text-slate-500">Gerente de Logística</p>
-              </div>
-              <div className="w-9 h-9 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden">
-                 <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
-              </div>
+              {userName && userAvatar ? (
+                <>
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-semibold text-slate-900">{userName}</p>
+                    <p className="text-xs text-slate-500">Gerente de Logística</p>
+                  </div>
+                  <div className="w-9 h-9 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden">
+                     <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-right hidden sm:block">
+                    <div className="h-4 bg-slate-200 rounded w-24 animate-pulse"></div>
+                    <div className="h-3 bg-slate-200 rounded w-20 mt-1 animate-pulse"></div>
+                  </div>
+                  <div className="w-9 h-9 bg-slate-200 rounded-full border-2 border-white shadow-sm animate-pulse"></div>
+                </>
+              )}
             </div>
           </div>
         </header>
