@@ -36,11 +36,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
     }, 1000);
   };
 
-  // --- Basic Calculations ---
-  const totalRevenue = loads.reduce((acc, load) => acc + load.companyValue, 0);
+  // --- Dynamic Calculations ---
+  // Use a fixed date for consistency with mock data, but in a real app, this would be new Date()
+  const referenceDate = new Date('2023-10-31'); 
+  const currentMonth = referenceDate.getMonth();
+  const currentYear = referenceDate.getFullYear();
+
+  const currentMonthLoads = loads.filter(load => {
+    const loadDate = new Date(load.date);
+    return loadDate.getMonth() === currentMonth && loadDate.getFullYear() === currentYear;
+  });
+
+  const totalRevenue = currentMonthLoads.reduce((acc, load) => acc + load.companyValue, 0);
   const activeLoads = loads.filter(l => l.status === LoadStatus.IN_TRANSIT).length;
   const delayedLoads = loads.filter(l => l.status === LoadStatus.DELAYED).length;
-  const completedLoads = loads.filter(l => l.status === LoadStatus.DELIVERED).length;
+  const completedLoads = currentMonthLoads.filter(l => l.status === LoadStatus.DELIVERED).length;
+  const percentReached = monthlyGoal > 0 ? (totalRevenue / monthlyGoal) * 100 : 0;
 
   // --- Report 1: Fleet vs Third Party Revenue ---
   const revenueByOwnership = loads.reduce((acc, load) => {
@@ -71,22 +82,59 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   .sort((a, b) => b.value - a.value)
   .slice(0, 5);
 
-  // --- Report 3: Monthly Revenue vs Meta ---
-  const revenueVsGoalData = [
-    { name: 'Jul', receita: 32000, meta: monthlyGoal },
-    { name: 'Ago', receita: 38000, meta: monthlyGoal },
-    { name: 'Set', receita: 42000, meta: monthlyGoal },
-    { name: 'Out', receita: totalRevenue, meta: monthlyGoal }, // Current Month
-  ];
-  
-  const percentReached = monthlyGoal > 0 ? (totalRevenue / monthlyGoal) * 100 : 0;
+  // --- Report 3: Monthly Revenue vs Meta (Dynamic) ---
+  const processMonthlyRevenue = (loads: Load[], goal: number) => {
+    const monthlyData: { [key: string]: number } = {};
 
-  // --- Report 4: Monthly Variation (Simulated Trend) ---
+    loads.forEach(load => {
+        const date = new Date(load.date);
+        const monthKey = `${date.getFullYear()}-${date.getMonth()}`; // YYYY-M format
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = 0;
+        }
+        monthlyData[monthKey] += load.companyValue;
+    });
+
+    const result = [];
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+    for (let i = 3; i >= 0; i--) {
+        const date = new Date(referenceDate);
+        date.setMonth(date.getMonth() - i);
+        
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const monthKey = `${year}-${month}`;
+        
+        const revenue = monthlyData[monthKey] || 0;
+        
+        result.push({
+            name: monthNames[month],
+            receita: revenue,
+            meta: goal
+        });
+    }
+    return result;
+  };
+  const revenueVsGoalData = processMonthlyRevenue(loads, monthlyGoal);
+  
+  // --- Report 4: Monthly Variation (Dynamic) ---
+  const weeklyRevenue = currentMonthLoads.reduce((acc, load) => {
+    const dayOfMonth = new Date(load.date).getDate();
+    let week = 'Sem 4';
+    if (dayOfMonth <= 7) week = 'Sem 1';
+    else if (dayOfMonth <= 14) week = 'Sem 2';
+    else if (dayOfMonth <= 21) week = 'Sem 3';
+    
+    acc[week] = (acc[week] || 0) + load.companyValue;
+    return acc;
+  }, {} as Record<string, number>);
+
   const variationData = [
-    { name: 'Sem 1', valor: 8500 },
-    { name: 'Sem 2', valor: 12400 },
-    { name: 'Sem 3', valor: 9800 },
-    { name: 'Sem 4', valor: totalRevenue - (8500+12400+9800) }, // Remaining to match total
+      { name: 'Sem 1', valor: weeklyRevenue['Sem 1'] || 0 },
+      { name: 'Sem 2', valor: weeklyRevenue['Sem 2'] || 0 },
+      { name: 'Sem 3', valor: weeklyRevenue['Sem 3'] || 0 },
+      { name: 'Sem 4', valor: weeklyRevenue['Sem 4'] || 0 },
   ];
 
   // --- Components ---
@@ -126,7 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
         {/* 1. KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard 
-            title="Faturamento Total" 
+            title="Faturamento (Mês)" 
             value={formatCurrency(totalRevenue)}
             icon={TrendingUp}
             color={{ bg: 'bg-emerald-50', text: 'text-emerald-600', iconText: 'text-emerald-600' }}
@@ -194,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                     <LabelList 
                       dataKey="receita" 
                       position="top" 
-                      formatter={(value: number) => formatShortCurrency(value)}
+                      formatter={(value: number) => value > 0 ? formatShortCurrency(value) : ''}
                       style={{ fill: '#475569', fontSize: 12, fontWeight: 500 }}
                     />
                   </Bar>
@@ -247,7 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                       <span className="text-sm font-medium text-slate-700">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-slate-900">
-                      {((item.value / totalRevenue) * 100).toFixed(0)}%
+                      {((item.value / loads.reduce((acc, l) => acc + l.companyValue, 0)) * 100).toFixed(0)}%
                     </span>
                  </div>
                ))}
