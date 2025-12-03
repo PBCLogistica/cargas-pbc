@@ -9,8 +9,9 @@ import { TrackingView } from './TrackingView';
 import { FreightCalculator } from './FreightCalculator';
 import { AIAssistant } from './AIAssistant';
 import { Settings } from './Settings';
-import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES } from '../constants';
-import { ViewState, FleetRecord, Client, DailyRateRecord, Load } from '../types';
+import { ProjectList } from './ProjectList';
+import { MOCK_LOADS, MOCK_FLEET, MOCK_CLIENTS, MOCK_DAILY_RATES, MOCK_PROJECTS } from '../constants';
+import { ViewState, FleetRecord, Client, DailyRateRecord, Load, Project } from '../types';
 import { Menu, Bell, Save, CheckCircle } from 'lucide-react';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -32,6 +33,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
   const [fleetRecords, setFleetRecords] = useState<FleetRecord[]>(MOCK_FLEET);
   const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
   const [dailyRates, setDailyRates] = useState<DailyRateRecord[]>(MOCK_DAILY_RATES);
+  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
 
   // Load data from localStorage on initial render
   useEffect(() => {
@@ -47,6 +49,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
 
       const savedDailyRates = localStorage.getItem('cargas_pbc_dailyRates');
       if (savedDailyRates) setDailyRates(JSON.parse(savedDailyRates));
+
+      const savedProjects = localStorage.getItem('cargas_pbc_projects');
+      if (savedProjects) setProjects(JSON.parse(savedProjects));
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
     }
@@ -59,6 +64,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
       localStorage.setItem('cargas_pbc_fleet', JSON.stringify(fleetRecords));
       localStorage.setItem('cargas_pbc_clients', JSON.stringify(clients));
       localStorage.setItem('cargas_pbc_dailyRates', JSON.stringify(dailyRates));
+      localStorage.setItem('cargas_pbc_projects', JSON.stringify(projects));
       
       setTimeout(() => {
         setIsSaving(false);
@@ -167,6 +173,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
     setDailyRates([...dailyRates, newRecord]);
   };
 
+  const handleAddProject = (newProject: Project) => {
+    setProjects([newProject, ...projects]);
+  };
+
+  const handleUpdateProject = (updatedProject: Project) => {
+    setProjects(projects.map(p => (p.id === updatedProject.id ? updatedProject : p)));
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setProjects(projects.filter(p => p.id !== id));
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -177,6 +195,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
         return <Dashboard loads={loads} fleet={fleetRecords} />;
       case 'loads':
         return <LoadList loads={loads} fleet={fleetRecords} clients={clients} onAddLoad={handleAddLoad} onUpdateLoad={handleUpdateLoad} onDeleteLoad={handleDeleteLoad} />;
+      case 'projects':
+        return <ProjectList projects={projects} clients={clients} onAddProject={handleAddProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} />;
       case 'fleet':
         return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients':
@@ -221,6 +241,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase }) => {
             <h2 className="text-lg font-semibold text-slate-800 hidden sm:block">
               {currentView === 'dashboard' && 'Visão Geral'}
               {currentView === 'loads' && 'Minhas Cargas'}
+              {currentView === 'projects' && 'Projetos e Contratos'}
               {currentView === 'fleet' && 'Gestão de Frota'}
               {currentView === 'clients' && 'Base de Clientes'}
               {currentView === 'daily_rates' && 'Controle de Diárias'}

@@ -100,4 +100,26 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export type ViewState = 'dashboard' | 'loads' | 'fleet' | 'clients' | 'daily_rates' | 'tracking' | 'calculator' | 'assistant' | 'settings';
+export enum ProjectStatus {
+  PLANNING = 'Planejamento',
+  IN_PROGRESS = 'Em Andamento',
+  COMPLETED = 'Concluído',
+  ON_HOLD = 'Em Espera',
+  CANCELLED = 'Cancelado'
+}
+
+export interface Project {
+  id: string;
+  projectName: string;
+  clientName: string;
+  scope: string;
+  totalValue: number;
+  paymentTerms: string;
+  startDate: string;
+  deadline: string;
+  status: ProjectStatus;
+  responsible: string;
+  notes?: string;
+}
+
+export type ViewState = 'dashboard' | 'loads' | 'projects' | 'fleet' | 'clients' | 'daily_rates' | 'tracking' | 'calculator' | 'assistant' | 'settings';

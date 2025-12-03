@@ -1,4 +1,4 @@
-import { Load, LoadStatus, FleetRecord, TrackingUpdate, Client, DailyRateRecord } from './types';
+import { Load, LoadStatus, FleetRecord, TrackingUpdate, Client, DailyRateRecord, Project, ProjectStatus } from './types';
 
 export const MOCK_LOADS: Load[] = [
   { 
@@ -232,4 +232,46 @@ export const MOCK_TRACKING_HISTORY: TrackingUpdate[] = [
   { id: 'TRK-3', loadId: 'PBC-001', timestamp: '2023-10-25T14:15:00', location: 'Aparecida, SP', status: 'Parada para Almoço', distanceToDelivery: 280 },
   { id: 'TRK-4', loadId: 'PBC-007', timestamp: '2023-10-23T09:00:00', location: 'Manaus, AM', status: 'Início de Viagem', distanceToDelivery: 780 },
   { id: 'TRK-5', loadId: 'PBC-007', timestamp: '2023-10-24T18:00:00', location: 'Presidente Figueiredo, AM', status: 'Pernoite', distanceToDelivery: 650 },
+];
+
+export const MOCK_PROJECTS: Project[] = [
+  {
+    id: 'PROJ-001',
+    projectName: 'Distribuição Nacional de Eletrônicos',
+    clientName: 'Indústria ABC Ltda',
+    scope: 'Gestão logística completa para a distribuição de 2.000 unidades de televisores para 15 capitais brasileiras.',
+    totalValue: 150000,
+    paymentTerms: '30/60/90 dias',
+    startDate: '2023-09-01',
+    deadline: '2023-12-20',
+    status: ProjectStatus.COMPLETED,
+    responsible: 'Ana Julia',
+    notes: 'Projeto finalizado com sucesso, 2 dias antes do prazo.'
+  },
+  {
+    id: 'PROJ-002',
+    projectName: 'Operação Safra de Grãos',
+    clientName: 'Agro Business',
+    scope: 'Transporte de 50.000 toneladas de soja do Mato Grosso para o Porto de Santos.',
+    totalValue: 850000,
+    paymentTerms: 'Sinal de 20% + pagamentos semanais',
+    startDate: '2023-10-15',
+    deadline: '2024-01-30',
+    status: ProjectStatus.IN_PROGRESS,
+    responsible: 'Carlos Silva',
+    notes: 'Acompanhamento diário de frota. Clima favorável.'
+  },
+  {
+    id: 'PROJ-003',
+    projectName: 'Fornecimento para Obra Civil',
+    clientName: 'Construtora Build',
+    scope: 'Entrega programada de cimento, areia e brita para obra em Recife, PE, durante 6 meses.',
+    totalValue: 320000,
+    paymentTerms: 'Faturamento mensal',
+    startDate: '2023-11-01',
+    deadline: '2024-05-01',
+    status: ProjectStatus.PLANNING,
+    responsible: 'Mariana Souza',
+    notes: 'Aguardando cronograma final da construtora.'
+  }
 ];
