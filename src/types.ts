@@ -114,6 +114,8 @@ export interface Project {
   clientName: string;
   scope: string;
   totalValue: number;
+  valuePerLoad: number;
+  loadQuantity: number;
   paymentTerms: string;
   startDate: string;
   deadline: string;

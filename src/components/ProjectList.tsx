@@ -17,6 +17,8 @@ const emptyForm: Partial<Project> = {
   clientName: '',
   scope: '',
   totalValue: 0,
+  valuePerLoad: 0,
+  loadQuantity: 0,
   paymentTerms: '',
   startDate: new Date().toISOString().split('T')[0],
   deadline: '',
@@ -101,6 +103,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
       'Projeto': p.projectName,
       'Cliente': p.clientName,
       'Valor Total': p.totalValue,
+      'Valor por Carga': p.valuePerLoad,
+      'Qtde Cargas': p.loadQuantity,
       'Prazo': p.deadline,
       'Status': p.status,
       'Responsável': p.responsible,
@@ -177,7 +181,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
           <thead className="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10">
             <tr>
               <th className="px-6 py-4 border-b border-slate-200">Projeto / Cliente</th>
-              <th className="px-6 py-4 border-b border-slate-200">Valor Total</th>
+              <th className="px-6 py-4 border-b border-slate-200">Financeiro</th>
               <th className="px-6 py-4 border-b border-slate-200">Prazos</th>
               <th className="px-6 py-4 border-b border-slate-200">Responsável</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Status</th>
@@ -195,6 +199,9 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
                   <div className="flex items-center gap-2 font-medium text-slate-800">
                     <DollarSign size={14} className="text-emerald-500" />
                     {project.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1 pl-6">
+                    {project.loadQuantity} cargas de {project.valuePerLoad.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -274,6 +281,16 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Condições de Pagamento</label>
                   <input type="text" value={formData.paymentTerms} onChange={e => setFormData({...formData, paymentTerms: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: 30/60/90 dias" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Valor por Carga (R$)</label>
+                  <input type="number" value={formData.valuePerLoad} onChange={e => setFormData({...formData, valuePerLoad: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de Cargas</label>
+                  <input type="number" value={formData.loadQuantity} onChange={e => setFormData({...formData, loadQuantity: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
