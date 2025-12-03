@@ -1,5 +1,6 @@
 export enum LoadStatus {
   PENDING = 'Pendente',
+  LOADING = 'Carregando',
   IN_TRANSIT = 'Em Trânsito',
   DELIVERED = 'Entregue',
   DELAYED = 'Atrasado',

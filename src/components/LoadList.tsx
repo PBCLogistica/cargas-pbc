@@ -99,6 +99,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
   const getStatusColor = (status: LoadStatus) => {
     switch (status) {
       case LoadStatus.DELIVERED: return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case LoadStatus.LOADING: return 'bg-blue-100 text-blue-700 border-blue-200';
       case LoadStatus.IN_TRANSIT: return 'bg-indigo-100 text-indigo-700 border-indigo-200';
       case LoadStatus.PENDING: return 'bg-amber-100 text-amber-700 border-amber-200';
       case LoadStatus.DELAYED: return 'bg-red-100 text-red-700 border-red-200';
