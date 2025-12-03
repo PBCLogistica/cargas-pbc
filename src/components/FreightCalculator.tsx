@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Calculator, DollarSign, Truck, Info, RefreshCw, Briefcase, MapPin, Navigation, Search } from 'lucide-react';
+import { Calculator, DollarSign, Truck, Info, RefreshCw, Briefcase, MapPin, Navigation, Search, FileText, Percent } from 'lucide-react';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
+import { getIcmsRate } from '../data/icmsRates';
 
 // Simplified Coefficients based on ANTT methodology (Mock Data for Demo)
 // CCD: Cost of Displacement (R$/km)
@@ -58,35 +59,62 @@ export const FreightCalculator: React.FC = () => {
   const [axles, setAxles] = useState<string>('6'); // Default to Carreta 3 eixos
   const [profitMargin, setProfitMargin] = useState<string>('20');
   const [tollCost, setTollCost] = useState<string>('0');
-  const [result, setResult] = useState<{ floor: number, total: number, profit: number } | null>(null);
+  const [collectionFee, setCollectionFee] = useState<string>('0');
+  const [invoiceValue, setInvoiceValue] = useState<string>('0');
+  const [adValoremRate, setAdValoremRate] = useState<string>('0.3');
+  
+  const [result, setResult] = useState<{ 
+    floor: number, 
+    total: number, 
+    profit: number,
+    icmsValue: number,
+    icmsRate: number,
+    adValoremValue: number,
+    collectionFee: number
+  } | null>(null);
 
   const calculateFreight = () => {
     const dist = parseFloat(distance);
     const toll = parseFloat(tollCost) || 0;
     const margin = parseFloat(profitMargin) || 0;
+    const collection = parseFloat(collectionFee) || 0;
+    const invoice = parseFloat(invoiceValue) || 0;
+    const adValorem = parseFloat(adValoremRate) || 0;
     
     if (!dist || dist <= 0) {
-      // Don't clear result here to allow error state or just do nothing
-      // But we can clear it if invalid
-      if (!result) setResult(null); 
+      if (result) setResult(null); 
       return;
     }
 
     const coef = ANTT_COEFFICIENTS[cargoType][axles];
     
-    // ANTT Formula Logic: (CCD * Distance) + CC
-    const displacementCost = coef.ccd * dist;
-    const loadingCost = coef.cc;
-    const floorPrice = displacementCost + loadingCost;
+    // 1. ANTT Floor Price
+    const floorPrice = (coef.ccd * dist) + coef.cc;
     
-    // Add User specific costs and margins
+    // 2. Profit
     const profitValue = floorPrice * (margin / 100);
-    const totalFreight = floorPrice + profitValue + toll;
+
+    // 3. Ad Valorem
+    const adValoremValue = invoice * (adValorem / 100);
+
+    // 4. Base for ICMS Calculation
+    const baseForIcms = floorPrice + profitValue + toll + collection + adValoremValue;
+
+    // 5. ICMS Calculation ("Cálculo por dentro")
+    const icmsRate = getIcmsRate(origin, destination);
+    const icmsValue = icmsRate > 0 ? (baseForIcms / (1 - (icmsRate / 100))) - baseForIcms : 0;
+
+    // 6. Final Total
+    const totalFreight = baseForIcms + icmsValue;
 
     setResult({
       floor: floorPrice,
       profit: profitValue,
-      total: totalFreight
+      total: totalFreight,
+      icmsValue: icmsValue,
+      icmsRate: icmsRate,
+      adValoremValue: adValoremValue,
+      collectionFee: collection
     });
   };
 
@@ -96,14 +124,11 @@ export const FreightCalculator: React.FC = () => {
     setIsCalculatingRoute(true);
     setResult(null); // Clear previous result when new route is traced
     
-    // 1. Update Map Iframe to show route
     const query = `from: ${origin} to: ${destination}`;
     setMapUrl(`https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=6&output=embed`);
 
-    // 2. Simulate API Distance calculation (Mock)
-    // In a real production app, this would use Google Distance Matrix API
     setTimeout(() => {
-        const mockDistance = Math.floor(Math.random() * (1200 - 150) + 150); // Random distance between 150km and 1200km
+        const mockDistance = Math.floor(Math.random() * (1200 - 150) + 150);
         setDistance(mockDistance.toString());
         setIsCalculatingRoute(false);
     }, 1000);
@@ -115,6 +140,9 @@ export const FreightCalculator: React.FC = () => {
     setDestination('');
     setMapUrl('');
     setTollCost('0');
+    setCollectionFee('0');
+    setInvoiceValue('0');
+    setAdValoremRate('0.3');
     setResult(null);
   };
 
@@ -206,7 +234,6 @@ export const FreightCalculator: React.FC = () => {
                 </div>
              )}
              
-             {/* Distance Overlay */}
              {distance && (
                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur px-4 py-3 rounded-xl shadow-lg border border-slate-200 flex items-center justify-between">
                     <div>
@@ -229,119 +256,109 @@ export const FreightCalculator: React.FC = () => {
               <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
                   <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
                     <Truck size={18} className="text-slate-400" />
-                    Configuração do Veículo
+                    Configuração do Veículo e Rota
                   </h3>
                   
                   <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Distância (Manual ou Automática)</label>
-                        <div className="relative">
-                        <input 
-                            type="number" 
-                            value={distance}
-                            onChange={(e) => setDistance(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-medium"
-                            placeholder="0"
-                        />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">km</span>
-                        </div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Distância (km)</label>
+                        <input type="number" value={distance} onChange={(e) => setDistance(e.target.value)}
+                            className="w-full p-2 border border-slate-200 rounded-lg" placeholder="0" />
                     </div>
-
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Carga</label>
-                            <select 
-                            value={cargoType}
-                            onChange={(e) => setCargoType(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                            >
-                            <option value="general">Carga Geral</option>
-                            <option value="bulk">Granel Sólido</option>
-                            <option value="frigo">Frigorificada</option>
-                            <option value="dangerous">Perigosa</option>
+                            <select value={cargoType} onChange={(e) => setCargoType(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg bg-white">
+                                <option value="general">Carga Geral</option>
+                                <option value="bulk">Granel Sólido</option>
+                                <option value="frigo">Frigorificada</option>
+                                <option value="dangerous">Perigosa</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Eixos / Veículo</label>
-                            <select 
-                            value={axles}
-                            onChange={(e) => setAxles(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                            >
-                            <option value="2">2 Eixos (Toco)</option>
-                            <option value="3">3 Eixos (Truck)</option>
-                            <option value="4">4 Eixos (Bitruck)</option>
-                            <option value="5">5 Eixos (Carreta)</option>
-                            <option value="6">6 Eixos (Carreta LS)</option>
-                            <option value="7">7 Eixos (Bitrem)</option>
-                            <option value="9">9 Eixos (Rodotrem)</option>
+                            <select value={axles} onChange={(e) => setAxles(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg bg-white">
+                                <option value="2">2 Eixos (Toco)</option>
+                                <option value="3">3 Eixos (Truck)</option>
+                                <option value="4">4 Eixos (Bitruck)</option>
+                                <option value="5">5 Eixos (Carreta)</option>
+                                <option value="6">6 Eixos (Carreta LS)</option>
+                                <option value="7">7 Eixos (Bitrem)</option>
+                                <option value="9">9 Eixos (Rodotrem)</option>
                             </select>
                         </div>
                     </div>
+                  </div>
+              </div>
 
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <DollarSign size={18} className="text-slate-400" />
+                    Custos Adicionais e Impostos
+                  </h3>
+                  <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Pedágio (R$)</label>
-                            <input 
-                            type="number" 
-                            value={tollCost}
-                            onChange={(e) => setTollCost(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-                            />
+                            <input type="number" value={tollCost} onChange={(e) => setTollCost(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Margem (%)</label>
-                            <input 
-                            type="number" 
-                            value={profitMargin}
-                            onChange={(e) => setProfitMargin(e.target.value)}
-                            className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Taxa de Coleta (R$)</label>
+                            <input type="number" value={collectionFee} onChange={(e) => setCollectionFee(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg" />
                         </div>
                     </div>
-                    
-                    <button 
-                        onClick={calculateFreight}
-                        disabled={!distance}
-                        className={`w-full mt-4 py-3 rounded-xl font-bold text-lg shadow-md flex items-center justify-center gap-2 transition-all
-                            ${!distance 
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                : 'bg-emerald-600 text-white hover:bg-emerald-700'}
-                        `}
-                    >
-                        <Calculator size={20} />
-                        Calcular Valor do Frete
-                    </button>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Valor da NF-e (R$)</label>
+                            <input type="number" value={invoiceValue} onChange={(e) => setInvoiceValue(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Ad Valorem (%)</label>
+                            <input type="number" value={adValoremRate} onChange={(e) => setAdValoremRate(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg" />
+                        </div>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Margem de Lucro (%)</label>
+                        <input type="number" value={profitMargin} onChange={(e) => setProfitMargin(e.target.value)}
+                            className="w-full p-2 border border-slate-200 rounded-lg" />
+                    </div>
                   </div>
               </div>
+              
+              <button onClick={calculateFreight} disabled={!distance || !origin || !destination}
+                  className={`w-full mt-2 py-3 rounded-xl font-bold text-lg shadow-md flex items-center justify-center gap-2 transition-all
+                      ${!distance || !origin || !destination
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                          : 'bg-emerald-600 text-white hover:bg-emerald-700'}
+                  `}>
+                  <Calculator size={20} />
+                  Calcular Valor do Frete
+              </button>
 
               {/* Result Card */}
               {result && (
                 <div className="bg-white p-6 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden animate-fade-in">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
-                    
                     <div className="relative z-10">
-                        <div className="flex items-end justify-between mb-2">
-                            <p className="text-sm font-bold text-slate-500 uppercase">Valor do Frete</p>
-                            <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">ANTT + Margem</span>
-                        </div>
-                        <div className="text-4xl font-bold text-slate-800 flex items-center gap-1 mb-1">
-                            <span className="text-2xl mt-1 text-slate-400">R$</span>
-                            {result.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <p className="text-sm font-bold text-slate-500 uppercase">Valor Final do Frete</p>
+                        <div className="text-4xl font-bold text-slate-800 mt-1 mb-2">
+                            {result.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </div>
                         <p className="text-sm text-slate-500 border-b border-slate-100 pb-4 mb-4">
-                            R$ {(result.total / parseFloat(distance)).toFixed(2)} / km
+                            Custo por km: <strong>{(result.total / parseFloat(distance)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
                         </p>
-
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p className="text-slate-500 mb-1">Piso Mínimo</p>
-                                <p className="font-bold text-slate-700">R$ {result.floor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            </div>
-                            <div>
-                                <p className="text-slate-500 mb-1">Lucro Estimado</p>
-                                <p className="font-bold text-emerald-600">+ R$ {result.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            </div>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between"><span className="text-slate-500">Piso Mínimo ANTT</span> <span className="font-medium text-slate-700">{result.floor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Taxa de Coleta</span> <span className="font-medium text-slate-700">{result.collectionFee.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Ad Valorem</span> <span className="font-medium text-slate-700">{result.adValoremValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">Lucro ({profitMargin}%)</span> <span className="font-medium text-emerald-600">{result.profit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
+                            <div className="flex justify-between"><span className="text-slate-500">ICMS ({result.icmsRate}%)</span> <span className="font-medium text-red-600">{result.icmsValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
                         </div>
                     </div>
                 </div>
@@ -349,16 +366,9 @@ export const FreightCalculator: React.FC = () => {
               
               {!result && (
                   <div className="text-center py-6 text-slate-400 bg-slate-100/50 rounded-xl border border-slate-200 border-dashed">
-                    <p className="text-sm">Defina a rota e clique em calcular.</p>
+                    <p className="text-sm">Preencha os campos para calcular.</p>
                   </div>
               )}
-
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3">
-                 <Info className="text-blue-500 flex-shrink-0" size={20} />
-                 <p className="text-xs text-blue-700 leading-relaxed">
-                   <strong>Nota:</strong> Este sistema utiliza uma simulação de distância baseada no Maps para demonstração. Em produção, conecte à API Google Distance Matrix para precisão exata de quilometragem e pedágios.
-                 </p>
-              </div>
            </div>
         </div>
       </div>
