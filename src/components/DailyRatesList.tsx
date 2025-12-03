@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DailyRateRecord, FleetRecord, Client } from '../types';
-import { Search, Plus, Clock, FileText, Paperclip, X, Save, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Clock, FileText, Paperclip, X, Save, Calendar, Pencil, Trash2, DollarSign } from 'lucide-react';
 import { AutocompleteInput } from './AutocompleteInput';
 import { useInputHistory } from '../hooks/useInputHistory';
 
@@ -22,6 +22,8 @@ const emptyForm: Partial<DailyRateRecord> = {
     departuredatetime: '',
     totalhours: 0,
     dailyratequantity: 0,
+    dailyratevalue: 0,
+    totalvalue: 0,
     delayreason: '',
     hasattachment: false
 };
@@ -49,6 +51,12 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
         setFormData(prev => ({...prev, totalhours: hours}));
     }
   }, [formData.arrivaldatetime, formData.departuredatetime]);
+
+  useEffect(() => {
+    const quantity = formData.dailyratequantity || 0;
+    const value = formData.dailyratevalue || 0;
+    setFormData(prev => ({ ...prev, totalvalue: quantity * value }));
+  }, [formData.dailyratequantity, formData.dailyratevalue]);
 
   const openModalForNew = () => {
     setEditingRecord(null);
@@ -100,6 +108,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
             departuredatetime: formData.departuredatetime || '',
             totalhours: formData.totalhours || 0,
             dailyratequantity: formData.dailyratequantity || 0,
+            dailyratevalue: formData.dailyratevalue || 0,
+            totalvalue: formData.totalvalue || 0,
             delayreason: formData.delayreason || '',
             hasattachment: formData.hasattachment || false
         };
@@ -158,9 +168,9 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
               <th className="px-6 py-4 border-b border-slate-200">Cliente</th>
               <th className="px-6 py-4 border-b border-slate-200">Motorista / Placas</th>
               <th className="px-6 py-4 border-b border-slate-200">Chegada / Saída</th>
-              <th className="px-6 py-4 border-b border-slate-200 text-center">Horas</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Diárias</th>
-              <th className="px-6 py-4 border-b border-slate-200">Motivo / Anexo</th>
+              <th className="px-6 py-4 border-b border-slate-200 text-right">Valor Total</th>
+              <th className="px-6 py-4 border-b border-slate-200">Motivo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Ações</th>
             </tr>
           </thead>
@@ -196,9 +206,6 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                   </div>
                 </td>
                 <td className="px-6 py-4 align-top text-center">
-                    <span className="font-bold text-slate-700">{record.totalhours.toFixed(1)}h</span>
-                </td>
-                <td className="px-6 py-4 align-top text-center">
                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                     record.dailyratequantity > 0 
                     ? 'bg-amber-50 text-amber-700 border-amber-200' 
@@ -206,18 +213,18 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                   }`}>
                     {record.dailyratequantity}
                   </span>
+                   <div className="text-[10px] text-slate-400 mt-1">{record.totalhours.toFixed(1)}h</div>
+                </td>
+                <td className="px-6 py-4 align-top text-right font-bold text-slate-800">
+                    {record.totalvalue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </td>
                 <td className="px-6 py-4 align-top">
                     <div className="flex items-center justify-between">
                          <div className="max-w-[150px] truncate text-xs text-slate-600" title={record.delayreason}>
                             {record.delayreason || '-'}
                          </div>
-                         {record.hasattachment ? (
+                         {record.hasattachment && (
                              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg cursor-pointer hover:bg-indigo-100" title="Ver Comprovante">
-                                <Paperclip size={14} />
-                             </div>
-                         ) : (
-                             <div className="p-1.5 text-slate-300">
                                 <Paperclip size={14} />
                              </div>
                          )}
@@ -327,21 +334,41 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
               </div>
 
               {/* Calculations */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
-                  <div>
-                      <p className="text-xs text-slate-500 uppercase font-bold">Horas Totais</p>
-                      <p className="text-xl font-bold text-slate-800">{formData.totalhours?.toFixed(2)} h</p>
-                  </div>
-                  <div className="w-px h-10 bg-slate-200 mx-4"></div>
-                  <div className="flex-1">
-                      <label className="block text-xs text-slate-500 uppercase font-bold mb-1">Qtde. Diárias</label>
-                      <input 
-                        type="number" 
-                        className="w-20 p-1 border border-slate-300 rounded text-center font-bold text-slate-800"
-                        value={formData.dailyratequantity}
-                        onChange={e => setFormData({...formData, dailyratequantity: Number(e.target.value)})}
-                      />
-                  </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Qtde. Diárias</label>
+                        <input 
+                          type="number" 
+                          className="w-full p-2 border border-slate-300 rounded text-center font-bold text-slate-800"
+                          value={formData.dailyratequantity}
+                          onChange={e => setFormData({...formData, dailyratequantity: Number(e.target.value)})}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Valor por Diária (R$)</label>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          className="w-full p-2 border border-slate-300 rounded text-center font-bold text-slate-800"
+                          value={formData.dailyratevalue}
+                          onChange={e => setFormData({...formData, dailyratevalue: Number(e.target.value)})}
+                          placeholder="Ex: 450.00"
+                        />
+                    </div>
+                </div>
+                <div className="border-t border-slate-200 pt-4 flex items-center justify-between">
+                    <div>
+                        <p className="text-xs text-slate-500 uppercase font-bold">Horas Totais</p>
+                        <p className="text-xl font-bold text-slate-800">{formData.totalhours?.toFixed(2)} h</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-slate-500 uppercase font-bold text-right">Valor Total</p>
+                        <p className="text-xl font-bold text-emerald-600">
+                            {(formData.totalvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </p>
+                    </div>
+                </div>
               </div>
 
               {/* Details */}

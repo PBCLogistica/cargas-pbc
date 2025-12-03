@@ -64,6 +64,8 @@ export interface DailyRateRecord {
   departuredatetime: string;
   totalhours: number;
   dailyratequantity: number;
+  dailyratevalue: number;
+  totalvalue: number;
   delayreason: string;
   hasattachment: boolean;
   updated_by?: string;
