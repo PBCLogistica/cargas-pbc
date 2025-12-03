@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FleetRecord } from '../types';
-import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download, Pencil } from 'lucide-react';
+import { Search, Plus, User, Truck, Settings2, X, Save, Trash2, Download, Pencil, Phone } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface FleetListProps {
@@ -12,6 +12,7 @@ interface FleetListProps {
 
 const emptyForm: Partial<FleetRecord> = {
   drivername: '',
+  phone: '',
   truckplate: '',
   trailerplate: '',
   trucktype: 'carreta baú',
@@ -52,6 +53,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
     } else {
       const newRecord: Omit<FleetRecord, 'id'> = {
         drivername: formData.drivername || '',
+        phone: formData.phone || '',
         truckplate: formData.truckplate || '',
         trailerplate: formData.trailerplate || '',
         trucktype: formData.trucktype || 'carreta baú',
@@ -71,7 +73,8 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
 
   const filteredRecords = records.filter(record => 
     record.drivername.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.truckplate.toLowerCase().includes(searchTerm.toLowerCase())
+    record.truckplate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (record.phone && record.phone.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleExport = () => {
@@ -83,6 +86,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
     const dataToExport = filteredRecords.map(rec => ({
       'ID': rec.id,
       'Motorista': rec.drivername,
+      'Telefone': rec.phone,
       'Placa Cavalo': rec.truckplate,
       'Placa Carreta': rec.trailerplate,
       'Tipo Veículo': rec.trucktype,
@@ -156,7 +160,7 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
                     </div>
                     <div>
                       <div className="font-bold text-slate-900">{record.drivername}</div>
-                      <div className="text-xs text-slate-400">ID: {record.id}</div>
+                      {record.phone && <div className="text-xs text-slate-500 flex items-center gap-1.5"><Phone size={12} />{record.phone}</div>}
                     </div>
                   </div>
                 </td>
@@ -218,15 +222,27 @@ export const FleetList: React.FC<FleetListProps> = ({ records, onAddRecord, onUp
             </div>
             
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Motorista</label>
-                <input 
-                  type="text" 
-                  value={formData.drivername}
-                  onChange={e => setFormData({...formData, drivername: e.target.value})}
-                  className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-                  placeholder="Ex: João da Silva"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Motorista</label>
+                  <input 
+                    type="text" 
+                    value={formData.drivername}
+                    onChange={e => setFormData({...formData, drivername: e.target.value})}
+                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    placeholder="Ex: João da Silva"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                  <input 
+                    type="text" 
+                    value={formData.phone || ''}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    placeholder="(XX) XXXXX-XXXX"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -41,6 +41,7 @@ export interface FleetRecord {
   trucktype: string;
   ownershiptype: 'Frota' | 'Terceiro';
   capacity: number;
+  phone?: string;
   updated_by?: string;
 }
 
