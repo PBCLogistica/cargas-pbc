@@ -91,21 +91,24 @@ export const FreightCalculator: React.FC = () => {
     // 1. ANTT Floor Price
     const floorPrice = (coef.ccd * dist) + coef.cc;
     
-    // 2. Profit
-    const profitValue = floorPrice * (margin / 100);
-
-    // 3. Ad Valorem
+    // 2. Ad Valorem
     const adValoremValue = invoice * (adValorem / 100);
 
-    // 4. Base for ICMS Calculation
-    const baseForIcms = floorPrice + profitValue + toll + collection + adValoremValue;
+    // 3. Base for ICMS (não inclui a margem de lucro)
+    const baseForIcms = floorPrice + toll + collection + adValoremValue;
 
-    // 5. ICMS Calculation ("Cálculo por dentro")
+    // 4. ICMS Calculation ("Cálculo por dentro")
     const icmsRate = getIcmsRate(origin, destination);
     const icmsValue = icmsRate > 0 ? (baseForIcms / (1 - (icmsRate / 100))) - baseForIcms : 0;
 
-    // 6. Final Total
-    const totalFreight = baseForIcms + icmsValue;
+    // 5. Preço com custos e impostos, antes do lucro
+    const priceBeforeProfit = baseForIcms + icmsValue;
+
+    // 6. Profit (calculado sobre o piso mínimo)
+    const profitValue = floorPrice * (margin / 100);
+
+    // 7. Final Total (soma o lucro ao final)
+    const totalFreight = priceBeforeProfit + profitValue;
 
     setResult({
       floor: floorPrice,
