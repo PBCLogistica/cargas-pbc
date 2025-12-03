@@ -223,6 +223,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     }
   };
 
+  const handleUpdateDailyRate = async (updatedRecord: DailyRateRecord) => {
+    const { data, error } = await supabase.from('daily_rates').update({ ...updatedRecord, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedRecord.id).select().single();
+    if (error) {
+      alert(`Erro ao atualizar diária: ${error.message}`);
+      console.error("Error updating daily rate:", error);
+      return;
+    }
+    if (data) {
+      setDailyRates(prev => prev.map(r => r.id === data.id ? data as DailyRateRecord : r));
+      await logActivity('update', 'daily_rate', data.id, data);
+    }
+  };
+
+  const handleDeleteDailyRate = async (id: string) => {
+    const { error } = await supabase.from('daily_rates').delete().eq('id', id);
+    if (error) {
+      alert(`Erro ao excluir diária: ${error.message}`);
+      console.error("Error deleting daily rate:", error);
+      return;
+    }
+    setDailyRates(prev => prev.filter(r => r.id !== id));
+    await logActivity('delete', 'daily_rate', id, { id });
+  };
+
   const handleAddProject = async (newProject: Omit<Project, 'id'>) => {
     const projectWithMeta = { ...newProject, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('projects').insert(projectWithMeta).select().single();
@@ -272,7 +296,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
       case 'projects': return <ProjectList projects={projects} clients={clients} onAddProject={handleAddProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} />;
       case 'fleet': return <FleetList records={fleetRecords} onAddRecord={handleAddFleetRecord} onUpdateRecord={handleUpdateFleetRecord} onDeleteRecord={handleDeleteFleetRecord} />;
       case 'clients': return <ClientList clients={clients} onAddClient={handleAddClient} onUpdateClient={handleUpdateClient} onDeleteClient={handleDeleteClient} />;
-      case 'daily_rates': return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} />;
+      case 'daily_rates': return <DailyRatesList records={dailyRates} fleet={fleetRecords} clients={clients} onAddRecord={handleAddDailyRate} onUpdateRecord={handleUpdateDailyRate} onDeleteRecord={handleDeleteDailyRate} />;
       case 'tracking': return <TrackingView loads={loads} supabase={supabase} onUpdateLoad={handleUpdateLoadFromTracking} />;
       case 'calculator': return <FreightCalculator />;
       case 'assistant': return <AIAssistant loads={loads} />;

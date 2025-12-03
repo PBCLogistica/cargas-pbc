@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DailyRateRecord, FleetRecord, Client } from '../types';
-import { Search, Plus, Clock, FileText, Paperclip, X, Save, Calendar, AlertCircle } from 'lucide-react';
+import { Search, Plus, Clock, FileText, Paperclip, X, Save, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { AutocompleteInput } from './AutocompleteInput';
 import { useInputHistory } from '../hooks/useInputHistory';
 
@@ -9,13 +9,11 @@ interface DailyRatesListProps {
   fleet: FleetRecord[];
   clients: Client[];
   onAddRecord: (record: Omit<DailyRateRecord, 'id'>) => void;
+  onUpdateRecord: (record: DailyRateRecord) => void;
+  onDeleteRecord: (id: string) => void;
 }
 
-export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, clients, onAddRecord }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [formData, setFormData] = useState<Partial<DailyRateRecord>>({
+const emptyForm: Partial<DailyRateRecord> = {
     clientname: '',
     drivername: '',
     truckplate: '',
@@ -26,7 +24,14 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
     dailyratequantity: 0,
     delayreason: '',
     hasattachment: false
-  });
+};
+
+export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, clients, onAddRecord, onUpdateRecord, onDeleteRecord }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<DailyRateRecord | null>(null);
+  
+  const [formData, setFormData] = useState<Partial<DailyRateRecord>>(emptyForm);
 
   const [delayReasonHistory, addDelayReason] = useInputHistory('delayReason');
 
@@ -44,6 +49,24 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
         setFormData(prev => ({...prev, totalhours: hours}));
     }
   }, [formData.arrivaldatetime, formData.departuredatetime]);
+
+  const openModalForNew = () => {
+    setEditingRecord(null);
+    setFormData(emptyForm);
+    setIsModalOpen(true);
+  };
+
+  const openModalForEdit = (record: DailyRateRecord) => {
+    setEditingRecord(record);
+    setFormData(record);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingRecord(null);
+    setFormData(emptyForm);
+  };
 
   const handleDriverChange = (driverName: string) => {
     const selectedFleetRecord = fleet.find(f => f.drivername === driverName);
@@ -65,33 +88,30 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
       addDelayReason(formData.delayreason);
     }
 
-    const newRecord: Omit<DailyRateRecord, 'id'> = {
-        clientname: formData.clientname || '',
-        drivername: formData.drivername || '',
-        truckplate: formData.truckplate || '',
-        trailerplate: formData.trailerplate || '',
-        arrivaldatetime: formData.arrivaldatetime || '',
-        departuredatetime: formData.departuredatetime || '',
-        totalhours: formData.totalhours || 0,
-        dailyratequantity: formData.dailyratequantity || 0,
-        delayreason: formData.delayreason || '',
-        hasattachment: formData.hasattachment || false
-    };
+    if (editingRecord) {
+        onUpdateRecord({ ...editingRecord, ...formData });
+    } else {
+        const newRecord: Omit<DailyRateRecord, 'id'> = {
+            clientname: formData.clientname || '',
+            drivername: formData.drivername || '',
+            truckplate: formData.truckplate || '',
+            trailerplate: formData.trailerplate || '',
+            arrivaldatetime: formData.arrivaldatetime || '',
+            departuredatetime: formData.departuredatetime || '',
+            totalhours: formData.totalhours || 0,
+            dailyratequantity: formData.dailyratequantity || 0,
+            delayreason: formData.delayreason || '',
+            hasattachment: formData.hasattachment || false
+        };
+        onAddRecord(newRecord);
+    }
+    closeModal();
+  };
 
-    onAddRecord(newRecord);
-    setIsModalOpen(false);
-    setFormData({
-        clientname: '',
-        drivername: '',
-        truckplate: '',
-        trailerplate: '',
-        arrivaldatetime: '',
-        departuredatetime: '',
-        totalhours: 0,
-        dailyratequantity: 0,
-        delayreason: '',
-        hasattachment: false
-    });
+  const handleDelete = (id: string, clientName: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir este registro de diária para o cliente ${clientName}?`)) {
+      onDeleteRecord(id);
+    }
   };
 
   const filteredRecords = records.filter(record => 
@@ -121,7 +141,7 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
             />
           </div>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModalForNew}
             className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -135,12 +155,13 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-4 border-b border-slate-200">ID / Cliente</th>
+              <th className="px-6 py-4 border-b border-slate-200">Cliente</th>
               <th className="px-6 py-4 border-b border-slate-200">Motorista / Placas</th>
               <th className="px-6 py-4 border-b border-slate-200">Chegada / Saída</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Horas</th>
               <th className="px-6 py-4 border-b border-slate-200 text-center">Diárias</th>
               <th className="px-6 py-4 border-b border-slate-200">Motivo / Anexo</th>
+              <th className="px-6 py-4 border-b border-slate-200 text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -202,6 +223,20 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                          )}
                     </div>
                 </td>
+                <td className="px-6 py-4 align-top text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => openModalForEdit(record)} className="text-slate-400 hover:text-indigo-600 p-2 rounded-lg transition-colors" title="Editar">
+                      <Pencil size={18} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(record.id, record.clientname)}
+                      className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
+                      title="Excluir"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -211,11 +246,11 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl relative z-10 overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-lg font-bold text-slate-800">Lançamento de Diária</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <h3 className="text-lg font-bold text-slate-800">{editingRecord ? 'Editar Diária' : 'Lançamento de Diária'}</h3>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>
             </div>
@@ -347,7 +382,7 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors font-medium"
               >
                 Cancelar
