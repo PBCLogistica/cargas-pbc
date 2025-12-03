@@ -215,7 +215,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
       case 'tracking': return <TrackingView loads={loads} supabase={supabase} onUpdateLoad={handleUpdateLoadFromTracking} />;
       case 'calculator': return <FreightCalculator />;
       case 'assistant': return <AIAssistant loads={loads} />;
-      case 'settings': return <Settings currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
+      case 'settings': return <Settings supabase={supabase} user={user} currentName={userName} currentAvatar={userAvatar} onProfileUpdate={handleProfileUpdate} />;
       default: return <Dashboard loads={loads} fleet={fleetRecords} />;
     }
   };
