@@ -10,7 +10,7 @@ interface LoadListProps {
   loads: Load[];
   fleet: FleetRecord[];
   clients: Client[];
-  onAddLoad: (load: Omit<Load, 'id'>) => void;
+  onAddLoad: (load: Omit<Load, 'id' | 'numeric_id'>) => void;
   onUpdateLoad: (load: Load) => void;
   onDeleteLoad: (id: string) => void;
 }
@@ -88,7 +88,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       load.destination.toLowerCase().includes(searchTermLower) ||
       load.driver.toLowerCase().includes(searchTermLower) ||
       load.id.toLowerCase().includes(searchTermLower) ||
-      load.client.toLowerCase().includes(searchTermLower);
+      load.client.toLowerCase().includes(searchTermLower) ||
+      (load.numeric_id && load.numeric_id.toString().includes(searchTermLower));
     
     const matchesStatus = filterStatus === 'All' || load.status === filterStatus;
 
@@ -118,7 +119,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     if (editingLoad) {
       onUpdateLoad({ ...editingLoad, ...formData });
     } else {
-      const newLoad: Omit<Load, 'id'> = {
+      const newLoad: Omit<Load, 'id' | 'numeric_id'> = {
         date: formData.date || new Date().toISOString().split('T')[0],
         client: formData.client || '',
         origin: formData.origin || '',
@@ -158,7 +159,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     }
 
     const dataToExport = filteredLoads.map(load => ({
-      'ID': load.id,
+      'ID Carga': load.numeric_id,
       'Data Emissão': load.date,
       'Cliente': load.client,
       'Origem': load.origin,
@@ -171,7 +172,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       'Valor Motorista': load.drivervalue,
       'Pedágio': load.toll,
       'Status': load.status,
-      'Observação': load.observation
+      'Observação': load.observation,
+      'ID Secundário': load.id
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -261,7 +263,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-slate-50 text-slate-700 font-semibold sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-4 border-b border-slate-200">ID / Data</th>
+              <th className="px-6 py-4 border-b border-slate-200">Carga / Data</th>
               <th className="px-6 py-4 border-b border-slate-200">Cliente / Rota</th>
               <th className="px-6 py-4 border-b border-slate-200">Motorista / Veículo</th>
               <th className="px-6 py-4 border-b border-slate-200 text-right">Financeiro</th>
@@ -273,11 +275,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
             {filteredLoads.map((load) => (
               <tr key={load.id} className="hover:bg-slate-50 transition-colors group">
                 <td className="px-6 py-4 align-top">
-                  <div className="font-bold text-slate-900">{load.id}</div>
+                  <div className="font-bold text-slate-900">#{load.numeric_id}</div>
                   <div className="flex items-center gap-1 text-slate-500 text-xs mt-1">
                     <Calendar size={12} />
                     {new Date(load.date).toLocaleDateString('pt-BR')}
                   </div>
+                  <div className="text-[10px] text-slate-400 font-mono mt-1 opacity-0 group-hover:opacity-100 transition-opacity">{load.id}</div>
                 </td>
                 <td className="px-6 py-4 align-top">
                   <div className="font-bold text-slate-900 flex items-center gap-2">
@@ -321,7 +324,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                       <Pencil size={18} />
                     </button>
                     <button 
-                      onClick={() => handleDelete(load.id, load.id)}
+                      onClick={() => handleDelete(load.id, `#${load.numeric_id}`)}
                       className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" 
                       title="Excluir Carga"
                     >
@@ -348,7 +351,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl relative z-10 overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-              <h3 className="text-lg font-bold text-slate-800">{editingLoad ? 'Editar Carga' : 'Nova Carga'}</h3>
+              <h3 className="text-lg font-bold text-slate-800">{editingLoad ? `Editar Carga #${editingLoad.numeric_id}` : 'Nova Carga'}</h3>
               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>

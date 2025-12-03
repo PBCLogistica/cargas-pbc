@@ -8,6 +8,7 @@ export enum LoadStatus {
 
 export interface Load {
   id: string;
+  numeric_id: number;
   date: string;
   client: string;
   origin: string;
