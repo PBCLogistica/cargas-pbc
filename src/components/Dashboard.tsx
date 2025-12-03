@@ -37,8 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   };
 
   // --- Dynamic Calculations ---
-  // Use a fixed date for consistency with mock data, but in a real app, this would be new Date()
-  const referenceDate = new Date('2023-10-31'); 
+  const referenceDate = new Date(); // CORREÇÃO: Usar a data atual
   const currentMonth = referenceDate.getMonth();
   const currentYear = referenceDate.getFullYear();
 
