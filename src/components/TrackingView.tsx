@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Load, LoadStatus, TrackingUpdate } from '../types';
-import { MapPin, Search, Navigation, Clock, CheckCircle, Calendar, Plus, ExternalLink, Truck, FileCheck, Upload, FileText, LayoutGrid, Map as MapIcon, AlertTriangle } from 'lucide-react';
+import { MapPin, Search, Navigation, Clock, CheckCircle, Calendar, Plus, ExternalLink, Truck, FileCheck, Upload, FileText, LayoutGrid, Map as MapIcon, AlertTriangle, Route, Loader2 } from 'lucide-react';
 import { MOCK_TRACKING_HISTORY } from '../constants';
 import { AutocompleteInput } from './AutocompleteInput';
 import { BRAZILIAN_CITIES } from '../data/cities';
@@ -53,6 +53,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
     isFinishing: false,
     hasAttachment: false
   });
+  const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
 
   useEffect(() => {
     // Filter for active loads
@@ -99,6 +100,29 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
       isFinishing: false,
       hasAttachment: false
     });
+  };
+
+  const handleCalculateDistance = () => {
+    if (!updateForm.location || !selectedLoad) return;
+
+    setIsCalculatingDistance(true);
+    
+    // Simulate API call to get distance from 'updateForm.location' to 'selectedLoad.destination'
+    setTimeout(() => {
+        // This mock logic ensures the distance decreases with each update.
+        const lastDistance = loadHistory[0]?.distanceToDelivery;
+        
+        let newDistance;
+        if (lastDistance && lastDistance > 50) {
+            const travelSegment = 50 + Math.random() * 100;
+            newDistance = Math.max(0, Math.floor(lastDistance - travelSegment));
+        } else {
+            newDistance = Math.floor(100 + Math.random() * 700);
+        }
+
+        setUpdateForm(prev => ({ ...prev, distance: newDistance.toString() }));
+        setIsCalculatingDistance(false);
+    }, 800);
   };
 
   const toggleFinishing = (checked: boolean) => {
@@ -343,7 +367,6 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
                         
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Only show standard Date input if NOT finishing. If finishing, date is in the checkbox area. */}
                                 {!updateForm.isFinishing && (
                                     <div>
                                         <label className="block text-xs font-medium text-slate-600 mb-1">Data/Hora</label>
@@ -370,14 +393,24 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-600 mb-1">Distância Restante (km)</label>
-                                    <input 
-                                    type="number" 
-                                    placeholder="0"
-                                    value={updateForm.distance}
-                                    onChange={e => setUpdateForm({...updateForm, distance: e.target.value})}
-                                    disabled={updateForm.isFinishing}
-                                    className={`w-full p-2 border border-slate-200 rounded-lg text-sm ${updateForm.isFinishing ? 'bg-slate-100 text-slate-400' : ''}`}
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <input 
+                                            type="number" 
+                                            placeholder="Clique em calcular"
+                                            value={updateForm.distance}
+                                            onChange={e => setUpdateForm({...updateForm, distance: e.target.value})}
+                                            disabled={updateForm.isFinishing || isCalculatingDistance}
+                                            className={`w-full p-2 border border-slate-200 rounded-lg text-sm ${updateForm.isFinishing || isCalculatingDistance ? 'bg-slate-100 text-slate-400' : ''}`}
+                                        />
+                                        <button 
+                                            onClick={handleCalculateDistance}
+                                            disabled={!updateForm.location || isCalculatingDistance}
+                                            className="p-2.5 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 disabled:bg-slate-100 disabled:text-slate-400 transition-colors flex-shrink-0"
+                                            title="Calcular distância automaticamente"
+                                        >
+                                            {isCalculatingDistance ? <Loader2 size={18} className="animate-spin" /> : <Route size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div className={`border rounded-lg p-3 transition-colors ${updateForm.isFinishing ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'border-slate-200'}`}>
@@ -393,7 +426,6 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads }) => {
                                         </span>
                                     </label>
                                     
-                                    {/* Retroactive Date Option */}
                                     {updateForm.isFinishing && (
                                         <div className="mt-3 pt-3 border-t border-indigo-100 animate-fade-in">
                                             <label className="block text-xs font-medium text-indigo-700 mb-1">Data/Hora da Entrega (Retroativo)</label>
