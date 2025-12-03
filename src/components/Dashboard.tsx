@@ -47,7 +47,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
     return loadDate.getMonth() === currentMonth && loadDate.getFullYear() === currentYear;
   });
 
-  const totalRevenue = currentMonthLoads.reduce((acc, load) => acc + load.companyValue, 0);
+  const totalRevenue = currentMonthLoads.reduce((acc, load) => acc + load.companyvalue, 0);
   const activeLoads = loads.filter(l => l.status === LoadStatus.IN_TRANSIT).length;
   const delayedLoads = loads.filter(l => l.status === LoadStatus.DELAYED).length;
   const completedLoads = currentMonthLoads.filter(l => l.status === LoadStatus.DELIVERED).length;
@@ -55,14 +55,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
 
   // --- Report 1: Fleet vs Third Party Revenue ---
   const revenueByOwnership = loads.reduce((acc, load) => {
-    const driverRecord = fleet.find(f => f.driverName === load.driver);
-    const type = driverRecord?.ownershipType === 'Frota' ? 'Frota Própria' : 'Terceiros';
+    const driverRecord = fleet.find(f => f.drivername === load.driver);
+    const type = driverRecord?.ownershiptype === 'Frota' ? 'Frota Própria' : 'Terceiros';
     
     const existing = acc.find(item => item.name === type);
     if (existing) {
-      existing.value += load.companyValue;
+      existing.value += load.companyvalue;
     } else {
-      acc.push({ name: type, value: load.companyValue });
+      acc.push({ name: type, value: load.companyvalue });
     }
     return acc;
   }, [] as { name: string, value: number }[]);
@@ -73,9 +73,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   const revenueByClient = loads.reduce((acc, load) => {
     const existing = acc.find(i => i.name === load.client);
     if (existing) {
-      existing.value += load.companyValue;
+      existing.value += load.companyvalue;
     } else {
-      acc.push({ name: load.client, value: load.companyValue });
+      acc.push({ name: load.client, value: load.companyvalue });
     }
     return acc;
   }, [] as { name: string, value: number }[])
@@ -92,7 +92,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
         if (!monthlyData[monthKey]) {
             monthlyData[monthKey] = 0;
         }
-        monthlyData[monthKey] += load.companyValue;
+        monthlyData[monthKey] += load.companyvalue;
     });
 
     const result = [];
@@ -126,7 +126,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
     else if (dayOfMonth <= 14) week = 'Sem 2';
     else if (dayOfMonth <= 21) week = 'Sem 3';
     
-    acc[week] = (acc[week] || 0) + load.companyValue;
+    acc[week] = (acc[week] || 0) + load.companyvalue;
     return acc;
   }, {} as Record<string, number>);
 
@@ -295,7 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                       <span className="text-sm font-medium text-slate-700">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-slate-900">
-                      {((item.value / loads.reduce((acc, l) => acc + l.companyValue, 0)) * 100).toFixed(0)}%
+                      {((item.value / loads.reduce((acc, l) => acc + l.companyvalue, 0)) * 100).toFixed(0)}%
                     </span>
                  </div>
                ))}

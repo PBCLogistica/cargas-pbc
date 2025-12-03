@@ -14,11 +14,11 @@ interface ClientListProps {
 }
 
 const emptyForm: Partial<Client> = {
-  companyName: '',
-  productType: '',
+  companyname: '',
+  producttype: '',
   city: '',
-  paymentType: 'Boleto',
-  paymentTerm: '',
+  paymenttype: 'Boleto',
+  paymentterm: '',
   contact: ''
 };
 
@@ -52,23 +52,23 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
   };
 
   const handleSave = () => {
-    if (!formData.companyName || !formData.city) {
+    if (!formData.companyname || !formData.city) {
         alert("Preencha o nome da empresa e a cidade.");
         return;
     }
     
-    if (formData.productType) addProductType(formData.productType);
-    if (formData.paymentTerm) addPaymentTerm(formData.paymentTerm);
+    if (formData.producttype) addProductType(formData.producttype);
+    if (formData.paymentterm) addPaymentTerm(formData.paymentterm);
 
     if (editingClient) {
       onUpdateClient({ ...editingClient, ...formData });
     } else {
       const newClient: Omit<Client, 'id'> = {
-        companyName: formData.companyName || '',
-        productType: formData.productType || '',
+        companyname: formData.companyname || '',
+        producttype: formData.producttype || '',
         city: formData.city || '',
-        paymentType: formData.paymentType || 'Boleto',
-        paymentTerm: formData.paymentTerm || '',
+        paymenttype: formData.paymenttype || 'Boleto',
+        paymentterm: formData.paymentterm || '',
         contact: formData.contact || ''
       };
       onAddClient(newClient);
@@ -83,9 +83,9 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
   };
 
   const filteredClients = clients.filter(client => 
-    client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.companyname.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.productType.toLowerCase().includes(searchTerm.toLowerCase())
+    client.producttype.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleExport = () => {
@@ -96,11 +96,11 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
 
     const dataToExport = filteredClients.map(client => ({
       'ID': client.id,
-      'Empresa': client.companyName,
-      'Tipo Produto': client.productType,
+      'Empresa': client.companyname,
+      'Tipo Produto': client.producttype,
       'Cidade': client.city,
-      'Tipo Cobrança': client.paymentType,
-      'Prazo Pagamento': client.paymentTerm,
+      'Tipo Cobrança': client.paymenttype,
+      'Prazo Pagamento': client.paymentterm,
       'Contato': client.contact
     }));
 
@@ -169,13 +169,13 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                       <Building2 size={16} />
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900">{client.companyName}</div>
+                      <div className="font-bold text-slate-900">{client.companyname}</div>
                       <div className="text-xs text-slate-400">ID: {client.id}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-slate-700 font-medium">
-                   {client.productType}
+                   {client.producttype}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2 text-slate-600">
@@ -187,11 +187,11 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                    <div className="space-y-1">
                        <div className="flex items-center gap-2">
                            <CreditCard size={14} className="text-indigo-400" />
-                           <span className="text-slate-900 font-medium">{client.paymentType}</span>
+                           <span className="text-slate-900 font-medium">{client.paymenttype}</span>
                        </div>
                        <div className="flex items-center gap-2 text-xs text-slate-500">
                            <Clock size={12} />
-                           <span>{client.paymentTerm}</span>
+                           <span>{client.paymentterm}</span>
                        </div>
                    </div>
                 </td>
@@ -207,7 +207,7 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                       <Pencil size={18} />
                     </button>
                     <button 
-                      onClick={() => handleDelete(client.id, client.companyName)}
+                      onClick={() => handleDelete(client.id, client.companyname)}
                       className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
                       title="Excluir Cliente"
                     >
@@ -244,8 +244,8 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nome da Empresa</label>
                 <input 
                   type="text" 
-                  value={formData.companyName}
-                  onChange={e => setFormData({...formData, companyName: e.target.value})}
+                  value={formData.companyname}
+                  onChange={e => setFormData({...formData, companyname: e.target.value})}
                   className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                   placeholder="Ex: Indústria LTDA"
                 />
@@ -255,8 +255,8 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Produto</label>
                   <AutocompleteInput
-                    value={formData.productType || ''}
-                    onChange={value => setFormData({ ...formData, productType: value })}
+                    value={formData.producttype || ''}
+                    onChange={value => setFormData({ ...formData, producttype: value })}
                     suggestions={productTypeHistory}
                     placeholder="Ex: Eletrônicos"
                   />
@@ -276,8 +276,8 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                  <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Cobrança</label>
                   <select 
-                    value={formData.paymentType}
-                    onChange={e => setFormData({...formData, paymentType: e.target.value as any})}
+                    value={formData.paymenttype}
+                    onChange={e => setFormData({...formData, paymenttype: e.target.value as any})}
                     className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
                   >
                     <option value="Boleto">Boleto</option>
@@ -287,8 +287,8 @@ export const ClientList: React.FC<ClientListProps> = ({ clients, onAddClient, on
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Prazo de Pagamento</label>
                   <AutocompleteInput
-                    value={formData.paymentTerm || ''}
-                    onChange={value => setFormData({ ...formData, paymentTerm: value })}
+                    value={formData.paymentterm || ''}
+                    onChange={value => setFormData({ ...formData, paymentterm: value })}
                     suggestions={paymentTermHistory}
                     placeholder="Ex: 30 dias, À vista"
                   />

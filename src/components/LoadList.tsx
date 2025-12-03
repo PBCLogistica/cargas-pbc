@@ -21,19 +21,19 @@ const emptyForm: Partial<Load> = {
   origin: '',
   destination: '',
   driver: '',
-  vehicleType: '',
-  truckPlate: '',
-  trailerPlate: '',
+  vehicletype: '',
+  truckplate: '',
+  trailerplate: '',
   weight: 0,
-  companyValue: 0,
-  driverValue: 0,
-  finalValue: 0,
+  companyvalue: 0,
+  drivervalue: 0,
+  finalvalue: 0,
   toll: 0,
-  adValorem: 0,
+  advalorem: 0,
   icms: true,
-  pisConfins: true,
-  forecastDate: '',
-  deliveryDate: '',
+  pisconfins: true,
+  forecastdate: '',
+  deliverydate: '',
   status: LoadStatus.PENDING,
   observation: ''
 };
@@ -51,14 +51,14 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
   const [observationHistory, addObservation] = useInputHistory('observation');
 
   const handleDriverChange = (driverName: string) => {
-    const selectedFleetRecord = fleet.find(f => f.driverName === driverName);
+    const selectedFleetRecord = fleet.find(f => f.drivername === driverName);
     
     setFormData(prev => ({
       ...prev,
       driver: driverName,
-      vehicleType: selectedFleetRecord ? selectedFleetRecord.truckType : prev.vehicleType,
-      truckPlate: selectedFleetRecord ? selectedFleetRecord.truckPlate : prev.truckPlate,
-      trailerPlate: selectedFleetRecord ? selectedFleetRecord.trailerPlate : prev.trailerPlate,
+      vehicletype: selectedFleetRecord ? selectedFleetRecord.trucktype : prev.vehicletype,
+      truckplate: selectedFleetRecord ? selectedFleetRecord.truckplate : prev.truckplate,
+      trailerplate: selectedFleetRecord ? selectedFleetRecord.trailerplate : prev.trailerplate,
       weight: selectedFleetRecord ? selectedFleetRecord.capacity : prev.weight
     }));
   };
@@ -124,19 +124,19 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
         origin: formData.origin || '',
         destination: formData.destination || '',
         driver: formData.driver || '',
-        vehicleType: formData.vehicleType || '',
-        truckPlate: formData.truckPlate || '',
-        trailerPlate: formData.trailerPlate || '',
+        vehicletype: formData.vehicletype || '',
+        truckplate: formData.truckplate || '',
+        trailerplate: formData.trailerplate || '',
         weight: formData.weight || 0,
-        companyValue: formData.companyValue || 0,
-        driverValue: formData.driverValue || 0,
-        finalValue: formData.finalValue || 0,
+        companyvalue: formData.companyvalue || 0,
+        drivervalue: formData.drivervalue || 0,
+        finalvalue: formData.finalvalue || 0,
         toll: formData.toll || 0,
-        adValorem: formData.adValorem || 0,
+        advalorem: formData.advalorem || 0,
         icms: formData.icms === undefined ? true : formData.icms,
-        pisConfins: formData.pisConfins === undefined ? true : formData.pisConfins,
-        forecastDate: formData.forecastDate || '',
-        deliveryDate: formData.deliveryDate || '',
+        pisconfins: formData.pisconfins === undefined ? true : formData.pisconfins,
+        forecastdate: formData.forecastdate || '',
+        deliverydate: formData.deliverydate || '',
         status: formData.status || LoadStatus.PENDING,
         observation: formData.observation || ''
       };
@@ -164,11 +164,11 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       'Origem': load.origin,
       'Destino': load.destination,
       'Motorista': load.driver,
-      'Placa Cavalo': load.truckPlate,
-      'Placa Carreta': load.trailerPlate,
+      'Placa Cavalo': load.truckplate,
+      'Placa Carreta': load.trailerplate,
       'Peso (kg)': load.weight,
-      'Valor Empresa': load.companyValue,
-      'Valor Motorista': load.driverValue,
+      'Valor Empresa': load.companyvalue,
+      'Valor Motorista': load.drivervalue,
       'Pedágio': load.toll,
       'Status': load.status,
       'Observação': load.observation
@@ -298,12 +298,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                 </td>
                 <td className="px-6 py-4 align-top">
                   <div className="font-medium text-slate-900">{load.driver}</div>
-                  <div className="text-xs text-slate-500 mt-1">{load.vehicleType} • {load.truckPlate}</div>
+                  <div className="text-xs text-slate-500 mt-1">{load.vehicletype} • {load.truckplate}</div>
                 </td>
                 <td className="px-6 py-4 align-top text-right">
                   <div className="flex items-center justify-end gap-1 text-slate-900 font-medium">
                     <DollarSign size={14} className="text-slate-400" />
-                    {load.companyValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    {load.companyvalue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </div>
                   <div className="flex items-center justify-end gap-1 text-xs text-slate-500 mt-1">
                     <Weight size={12} />
@@ -383,7 +383,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                     >
                         <option value="">Selecione um cliente...</option>
                         {clients.map(client => (
-                            <option key={client.id} value={client.companyName}>{client.companyName}</option>
+                            <option key={client.id} value={client.companyname}>{client.companyname}</option>
                         ))}
                     </select>
                   </div>
@@ -421,7 +421,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                       >
                         <option value="">Selecione um motorista...</option>
                         {fleet.map(record => (
-                           <option key={record.id} value={record.driverName}>{record.driverName} - {record.truckType}</option>
+                           <option key={record.id} value={record.drivername}>{record.drivername} - {record.trucktype}</option>
                         ))}
                       </select>
                    </div>
@@ -429,17 +429,17 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Tipo</label>
                         <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-slate-50" placeholder="Ex: Baú"
-                            value={formData.vehicleType} onChange={e => setFormData({...formData, vehicleType: e.target.value})} />
+                            value={formData.vehicletype} onChange={e => setFormData({...formData, vehicletype: e.target.value})} />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">Placa Cavalo</label>
                         <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm uppercase bg-slate-50" placeholder="ABC-1234"
-                            value={formData.truckPlate} onChange={e => setFormData({...formData, truckPlate: e.target.value.toUpperCase()})} />
+                            value={formData.truckplate} onChange={e => setFormData({...formData, truckplate: e.target.value.toUpperCase()})} />
                       </div>
                       <div>
                          <label className="block text-xs font-medium text-slate-700 mb-1">Placa Carreta</label>
                         <input type="text" className="w-full p-2 border border-slate-200 rounded-lg text-sm uppercase bg-slate-50" placeholder="XYZ-9999"
-                            value={formData.trailerPlate} onChange={e => setFormData({...formData, trailerPlate: e.target.value.toUpperCase()})} />
+                            value={formData.trailerplate} onChange={e => setFormData({...formData, trailerplate: e.target.value.toUpperCase()})} />
                       </div>
                    </div>
                    <div>
@@ -457,12 +457,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Previsão Entrega</label>
                         <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm" 
-                             value={formData.forecastDate} onChange={e => setFormData({...formData, forecastDate: e.target.value})} />
+                             value={formData.forecastdate} onChange={e => setFormData({...formData, forecastdate: e.target.value})} />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Data Entrega</label>
                         <input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm" 
-                             value={formData.deliveryDate} onChange={e => setFormData({...formData, deliveryDate: e.target.value})} />
+                             value={formData.deliverydate} onChange={e => setFormData({...formData, deliverydate: e.target.value})} />
                       </div>
                    </div>
                     <div>
@@ -485,8 +485,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
                             <input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00"
-                                value={(formData.companyValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-                                onChange={e => handleNumericChange(e, 'companyValue', true)} />
+                                value={(formData.companyvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                                onChange={e => handleNumericChange(e, 'companyvalue', true)} />
                         </div>
                       </div>
                       <div>
@@ -494,8 +494,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                          <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
                             <input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00"
-                                value={(formData.driverValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-                                onChange={e => handleNumericChange(e, 'driverValue', true)} />
+                                value={(formData.drivervalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                                onChange={e => handleNumericChange(e, 'drivervalue', true)} />
                          </div>
                       </div>
                    </div>
@@ -514,8 +514,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                          <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
                             <input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00"
-                                value={(formData.adValorem || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-                                onChange={e => handleNumericChange(e, 'adValorem', true)} />
+                                value={(formData.advalorem || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                                onChange={e => handleNumericChange(e, 'advalorem', true)} />
                          </div>
                       </div>
                    </div>
@@ -526,7 +526,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                             <span className="text-sm text-slate-700">Incide ICMS</span>
                         </label>
                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={formData.pisConfins} onChange={e => setFormData({...formData, pisConfins: e.target.checked})} 
+                            <input type="checkbox" checked={formData.pisconfins} onChange={e => setFormData({...formData, pisconfins: e.target.checked})} 
                                 className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"/>
                             <span className="text-sm text-slate-700">Incide PIS/COFINS</span>
                         </label>
@@ -536,8 +536,8 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span>
                             <input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-lg font-bold text-emerald-600 bg-white" placeholder="R$ 0,00"
-                                value={(formData.finalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
-                                onChange={e => handleNumericChange(e, 'finalValue', true)} />
+                                value={(formData.finalvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                                onChange={e => handleNumericChange(e, 'finalvalue', true)} />
                         </div>
                    </div>
                 </div>

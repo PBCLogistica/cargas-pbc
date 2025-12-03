@@ -13,14 +13,14 @@ interface ProjectListProps {
 }
 
 const emptyForm: Partial<Project> = {
-  projectName: '',
-  clientName: '',
+  projectname: '',
+  clientname: '',
   scope: '',
-  totalValue: 0,
-  valuePerLoad: 0,
-  loadQuantity: 0,
-  paymentTerms: '',
-  startDate: new Date().toISOString().split('T')[0],
+  totalvalue: 0,
+  valueperload: 0,
+  loadquantity: 0,
+  paymentterms: '',
+  startdate: new Date().toISOString().split('T')[0],
   deadline: '',
   status: ProjectStatus.PLANNING,
   responsible: '',
@@ -39,14 +39,14 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
   const [responsibleHistory, addResponsible] = useInputHistory('responsible');
 
   useEffect(() => {
-    const valuePerLoad = formData.valuePerLoad || 0;
-    const loadQuantity = formData.loadQuantity || 0;
+    const valuePerLoad = formData.valueperload || 0;
+    const loadQuantity = formData.loadquantity || 0;
     const newTotalValue = valuePerLoad * loadQuantity;
 
-    if (newTotalValue !== formData.totalValue) {
-      setFormData(prev => ({ ...prev, totalValue: newTotalValue }));
+    if (newTotalValue !== formData.totalvalue) {
+      setFormData(prev => ({ ...prev, totalvalue: newTotalValue }));
     }
-  }, [formData.valuePerLoad, formData.loadQuantity, formData.totalValue]);
+  }, [formData.valueperload, formData.loadquantity, formData.totalvalue]);
 
   const openModalForNew = () => {
     setEditingProject(null);
@@ -67,26 +67,26 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
   };
 
   const handleSave = () => {
-    if (!formData.projectName || !formData.clientName || !formData.deadline) {
+    if (!formData.projectname || !formData.clientname || !formData.deadline) {
         alert("Preencha o nome do projeto, cliente e o prazo final.");
         return;
     }
     
-    if (formData.paymentTerms) addPaymentTerm(formData.paymentTerms);
+    if (formData.paymentterms) addPaymentTerm(formData.paymentterms);
     if (formData.responsible) addResponsible(formData.responsible);
 
     if (editingProject) {
       onUpdateProject({ ...editingProject, ...formData });
     } else {
       const newProject: Omit<Project, 'id'> = {
-        projectName: formData.projectName || '',
-        clientName: formData.clientName || '',
+        projectname: formData.projectname || '',
+        clientname: formData.clientname || '',
         scope: formData.scope || '',
-        totalValue: formData.totalValue || 0,
-        valuePerLoad: formData.valuePerLoad || 0,
-        loadQuantity: formData.loadQuantity || 0,
-        paymentTerms: formData.paymentTerms || '',
-        startDate: formData.startDate || new Date().toISOString().split('T')[0],
+        totalvalue: formData.totalvalue || 0,
+        valueperload: formData.valueperload || 0,
+        loadquantity: formData.loadquantity || 0,
+        paymentterms: formData.paymentterms || '',
+        startdate: formData.startdate || new Date().toISOString().split('T')[0],
         deadline: formData.deadline || '',
         status: formData.status || ProjectStatus.PLANNING,
         responsible: formData.responsible || '',
@@ -105,8 +105,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
 
   const filteredProjects = projects.filter(project => {
     const term = searchTerm.toLowerCase();
-    const matchesSearch = project.projectName.toLowerCase().includes(term) ||
-                          project.clientName.toLowerCase().includes(term) ||
+    const matchesSearch = project.projectname.toLowerCase().includes(term) ||
+                          project.clientname.toLowerCase().includes(term) ||
                           project.responsible?.toLowerCase().includes(term);
     const matchesStatus = filterStatus === 'All' || project.status === filterStatus;
     return matchesSearch && matchesStatus;
@@ -119,11 +119,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
     }
     const dataToExport = filteredProjects.map(p => ({
       'ID': p.id,
-      'Projeto': p.projectName,
-      'Cliente': p.clientName,
-      'Valor Total': p.totalValue,
-      'Valor por Carga': p.valuePerLoad,
-      'Qtde Cargas': p.loadQuantity,
+      'Projeto': p.projectname,
+      'Cliente': p.clientname,
+      'Valor Total': p.totalvalue,
+      'Valor por Carga': p.valueperload,
+      'Qtde Cargas': p.loadquantity,
       'Prazo': p.deadline,
       'Status': p.status,
       'Responsável': p.responsible,
@@ -211,23 +211,23 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
             {filteredProjects.map((project) => (
               <tr key={project.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="font-bold text-slate-900">{project.projectName}</div>
-                  <div className="text-xs text-slate-500">{project.clientName}</div>
+                  <div className="font-bold text-slate-900">{project.projectname}</div>
+                  <div className="text-xs text-slate-500">{project.clientname}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2 font-medium text-slate-800">
                     <DollarSign size={14} className="text-emerald-500" />
-                    {project.totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    {project.totalvalue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </div>
                   <div className="text-xs text-slate-500 mt-1 pl-6">
-                    {project.loadQuantity} cargas de {project.valuePerLoad.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    {project.loadquantity} cargas de {project.valueperload.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col gap-1 text-xs">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-500 w-12">Início:</span>
-                      <span>{new Date(project.startDate).toLocaleDateString()}</span>
+                      <span>{new Date(project.startdate).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-slate-500 w-12">Prazo:</span>
@@ -252,7 +252,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
                       <Pencil size={18} />
                     </button>
                     <button 
-                      onClick={() => handleDelete(project.id, project.projectName)}
+                      onClick={() => handleDelete(project.id, project.projectname)}
                       className="text-slate-400 hover:text-red-600 p-2 rounded-lg transition-colors" 
                       title="Excluir Projeto"
                     >
@@ -279,13 +279,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
             <div className="p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nome do Projeto</label>
-                <input type="text" value={formData.projectName} onChange={e => setFormData({...formData, projectName: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: Operação Safra 2024" />
+                <input type="text" value={formData.projectname} onChange={e => setFormData({...formData, projectname: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: Operação Safra 2024" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
-                <select value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg bg-white">
+                <select value={formData.clientname} onChange={e => setFormData({...formData, clientname: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg bg-white">
                   <option value="">Selecione...</option>
-                  {clients.map(c => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
+                  {clients.map(c => <option key={c.id} value={c.companyname}>{c.companyname}</option>)}
                 </select>
               </div>
               <div>
@@ -295,11 +295,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Valor por Carga (R$)</label>
-                  <input type="number" value={formData.valuePerLoad} onChange={e => setFormData({...formData, valuePerLoad: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
+                  <input type="number" value={formData.valueperload} onChange={e => setFormData({...formData, valueperload: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade de Cargas</label>
-                  <input type="number" value={formData.loadQuantity} onChange={e => setFormData({...formData, loadQuantity: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
+                  <input type="number" value={formData.loadquantity} onChange={e => setFormData({...formData, loadquantity: Number(e.target.value)})} className="w-full p-2 border border-slate-200 rounded-lg" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -307,20 +307,20 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, clients, onA
                   <label className="block text-sm font-medium text-slate-700 mb-1">Valor Total (R$)</label>
                   <input 
                     type="text" 
-                    value={(formData.totalValue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
+                    value={(formData.totalvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} 
                     className="w-full p-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500" 
                     readOnly 
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Condições de Pagamento</label>
-                  <input type="text" value={formData.paymentTerms} onChange={e => setFormData({...formData, paymentTerms: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: 30/60/90 dias" />
+                  <input type="text" value={formData.paymentterms} onChange={e => setFormData({...formData, paymentterms: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" placeholder="Ex: 30/60/90 dias" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Data de Início</label>
-                  <input type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" />
+                  <input type="date" value={formData.startdate} onChange={e => setFormData({...formData, startdate: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Prazo Final</label>

@@ -16,16 +16,16 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [formData, setFormData] = useState<Partial<DailyRateRecord>>({
-    clientName: '',
-    driverName: '',
-    truckPlate: '',
-    trailerPlate: '',
-    arrivalDateTime: '',
-    departureDateTime: '',
-    totalHours: 0,
-    dailyRateQuantity: 0,
-    delayReason: '',
-    hasAttachment: false
+    clientname: '',
+    drivername: '',
+    truckplate: '',
+    trailerplate: '',
+    arrivaldatetime: '',
+    departuredatetime: '',
+    totalhours: 0,
+    dailyratequantity: 0,
+    delayreason: '',
+    hasattachment: false
   });
 
   const [delayReasonHistory, addDelayReason] = useInputHistory('delayReason');
@@ -39,65 +39,65 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
   };
 
   useEffect(() => {
-    if (formData.arrivalDateTime && formData.departureDateTime) {
-        const hours = calculateHours(formData.arrivalDateTime, formData.departureDateTime);
-        setFormData(prev => ({...prev, totalHours: hours}));
+    if (formData.arrivaldatetime && formData.departuredatetime) {
+        const hours = calculateHours(formData.arrivaldatetime, formData.departuredatetime);
+        setFormData(prev => ({...prev, totalhours: hours}));
     }
-  }, [formData.arrivalDateTime, formData.departureDateTime]);
+  }, [formData.arrivaldatetime, formData.departuredatetime]);
 
   const handleDriverChange = (driverName: string) => {
-    const selectedFleetRecord = fleet.find(f => f.driverName === driverName);
+    const selectedFleetRecord = fleet.find(f => f.drivername === driverName);
     setFormData(prev => ({
       ...prev,
-      driverName,
-      truckPlate: selectedFleetRecord ? selectedFleetRecord.truckPlate : prev.truckPlate,
-      trailerPlate: selectedFleetRecord ? selectedFleetRecord.trailerPlate : prev.trailerPlate
+      drivername: driverName,
+      truckplate: selectedFleetRecord ? selectedFleetRecord.truckplate : prev.truckplate,
+      trailerplate: selectedFleetRecord ? selectedFleetRecord.trailerplate : prev.trailerplate
     }));
   };
 
   const handleSave = () => {
-    if (!formData.clientName || !formData.driverName || !formData.arrivalDateTime) {
+    if (!formData.clientname || !formData.drivername || !formData.arrivaldatetime) {
         alert("Preencha cliente, motorista e horário de chegada.");
         return;
     }
 
-    if (formData.delayReason) {
-      addDelayReason(formData.delayReason);
+    if (formData.delayreason) {
+      addDelayReason(formData.delayreason);
     }
 
     const newRecord: Omit<DailyRateRecord, 'id'> = {
-        clientName: formData.clientName || '',
-        driverName: formData.driverName || '',
-        truckPlate: formData.truckPlate || '',
-        trailerPlate: formData.trailerPlate || '',
-        arrivalDateTime: formData.arrivalDateTime || '',
-        departureDateTime: formData.departureDateTime || '',
-        totalHours: formData.totalHours || 0,
-        dailyRateQuantity: formData.dailyRateQuantity || 0,
-        delayReason: formData.delayReason || '',
-        hasAttachment: formData.hasAttachment || false
+        clientname: formData.clientname || '',
+        drivername: formData.drivername || '',
+        truckplate: formData.truckplate || '',
+        trailerplate: formData.trailerplate || '',
+        arrivaldatetime: formData.arrivaldatetime || '',
+        departuredatetime: formData.departuredatetime || '',
+        totalhours: formData.totalhours || 0,
+        dailyratequantity: formData.dailyratequantity || 0,
+        delayreason: formData.delayreason || '',
+        hasattachment: formData.hasattachment || false
     };
 
     onAddRecord(newRecord);
     setIsModalOpen(false);
     setFormData({
-        clientName: '',
-        driverName: '',
-        truckPlate: '',
-        trailerPlate: '',
-        arrivalDateTime: '',
-        departureDateTime: '',
-        totalHours: 0,
-        dailyRateQuantity: 0,
-        delayReason: '',
-        hasAttachment: false
+        clientname: '',
+        drivername: '',
+        truckplate: '',
+        trailerplate: '',
+        arrivaldatetime: '',
+        departuredatetime: '',
+        totalhours: 0,
+        dailyratequantity: 0,
+        delayreason: '',
+        hasattachment: false
     });
   };
 
   const filteredRecords = records.filter(record => 
-    record.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.driverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.truckPlate.toLowerCase().includes(searchTerm.toLowerCase())
+    record.clientname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.drivername.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.truckplate.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -147,27 +147,27 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
             {filteredRecords.map((record) => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4 align-top">
-                  <div className="font-bold text-slate-900">{record.clientName}</div>
+                  <div className="font-bold text-slate-900">{record.clientname}</div>
                   <div className="text-xs text-slate-500 mt-1">{record.id}</div>
                 </td>
                 <td className="px-6 py-4 align-top">
-                   <div className="font-medium text-slate-900">{record.driverName}</div>
+                   <div className="font-medium text-slate-900">{record.drivername}</div>
                    <div className="flex items-center gap-2 mt-1">
-                      <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono text-[10px] border border-slate-200">{record.truckPlate}</span>
+                      <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono text-[10px] border border-slate-200">{record.truckplate}</span>
                       <span className="text-slate-300">/</span>
-                      <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono text-[10px] border border-slate-200">{record.trailerPlate}</span>
+                      <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono text-[10px] border border-slate-200">{record.trailerplate}</span>
                    </div>
                 </td>
                 <td className="px-6 py-4 align-top">
                   <div className="flex flex-col gap-1 text-xs">
                     <div className="flex items-center gap-2 text-emerald-600">
                         <Clock size={12} />
-                        <span>{new Date(record.arrivalDateTime).toLocaleString()}</span>
+                        <span>{new Date(record.arrivaldatetime).toLocaleString()}</span>
                     </div>
-                    {record.departureDateTime ? (
+                    {record.departuredatetime ? (
                         <div className="flex items-center gap-2 text-red-500">
                             <Clock size={12} />
-                            <span>{new Date(record.departureDateTime).toLocaleString()}</span>
+                            <span>{new Date(record.departuredatetime).toLocaleString()}</span>
                         </div>
                     ) : (
                         <span className="text-slate-400 italic pl-5">Em aberto</span>
@@ -175,23 +175,23 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                   </div>
                 </td>
                 <td className="px-6 py-4 align-top text-center">
-                    <span className="font-bold text-slate-700">{record.totalHours.toFixed(1)}h</span>
+                    <span className="font-bold text-slate-700">{record.totalhours.toFixed(1)}h</span>
                 </td>
                 <td className="px-6 py-4 align-top text-center">
                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                    record.dailyRateQuantity > 0 
+                    record.dailyratequantity > 0 
                     ? 'bg-amber-50 text-amber-700 border-amber-200' 
                     : 'bg-slate-100 text-slate-500 border-slate-200'
                   }`}>
-                    {record.dailyRateQuantity}
+                    {record.dailyratequantity}
                   </span>
                 </td>
                 <td className="px-6 py-4 align-top">
                     <div className="flex items-center justify-between">
-                         <div className="max-w-[150px] truncate text-xs text-slate-600" title={record.delayReason}>
-                            {record.delayReason || '-'}
+                         <div className="max-w-[150px] truncate text-xs text-slate-600" title={record.delayreason}>
+                            {record.delayreason || '-'}
                          </div>
-                         {record.hasAttachment ? (
+                         {record.hasattachment ? (
                              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg cursor-pointer hover:bg-indigo-100" title="Ver Comprovante">
                                 <Paperclip size={14} />
                              </div>
@@ -227,22 +227,22 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
                     <select 
                         className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                        value={formData.clientName}
-                        onChange={e => setFormData({...formData, clientName: e.target.value})}
+                        value={formData.clientname}
+                        onChange={e => setFormData({...formData, clientname: e.target.value})}
                     >
                         <option value="">Selecione...</option>
-                        {clients.map(c => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
+                        {clients.map(c => <option key={c.id} value={c.companyname}>{c.companyname}</option>)}
                     </select>
                  </div>
                  <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Motorista</label>
                     <select 
                         className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                        value={formData.driverName}
+                        value={formData.drivername}
                         onChange={e => handleDriverChange(e.target.value)}
                     >
                         <option value="">Selecione...</option>
-                        {fleet.map(f => <option key={f.id} value={f.driverName}>{f.driverName}</option>)}
+                        {fleet.map(f => <option key={f.id} value={f.drivername}>{f.drivername}</option>)}
                     </select>
                  </div>
               </div>
@@ -254,8 +254,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <input 
                         type="text" 
                         className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50"
-                        value={formData.truckPlate}
-                        onChange={e => setFormData({...formData, truckPlate: e.target.value})}
+                        value={formData.truckplate}
+                        onChange={e => setFormData({...formData, truckplate: e.target.value})}
                     />
                   </div>
                   <div>
@@ -263,8 +263,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <input 
                         type="text" 
                         className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50"
-                        value={formData.trailerPlate}
-                        onChange={e => setFormData({...formData, trailerPlate: e.target.value})}
+                        value={formData.trailerplate}
+                        onChange={e => setFormData({...formData, trailerplate: e.target.value})}
                     />
                   </div>
               </div>
@@ -276,8 +276,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <input 
                         type="datetime-local" 
                         className="w-full p-2 border border-slate-200 rounded-lg"
-                        value={formData.arrivalDateTime}
-                        onChange={e => setFormData({...formData, arrivalDateTime: e.target.value})}
+                        value={formData.arrivaldatetime}
+                        onChange={e => setFormData({...formData, arrivaldatetime: e.target.value})}
                     />
                   </div>
                   <div>
@@ -285,8 +285,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <input 
                         type="datetime-local" 
                         className="w-full p-2 border border-slate-200 rounded-lg"
-                        value={formData.departureDateTime}
-                        onChange={e => setFormData({...formData, departureDateTime: e.target.value})}
+                        value={formData.departuredatetime}
+                        onChange={e => setFormData({...formData, departuredatetime: e.target.value})}
                     />
                   </div>
               </div>
@@ -295,7 +295,7 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
                   <div>
                       <p className="text-xs text-slate-500 uppercase font-bold">Horas Totais</p>
-                      <p className="text-xl font-bold text-slate-800">{formData.totalHours?.toFixed(2)} h</p>
+                      <p className="text-xl font-bold text-slate-800">{formData.totalhours?.toFixed(2)} h</p>
                   </div>
                   <div className="w-px h-10 bg-slate-200 mx-4"></div>
                   <div className="flex-1">
@@ -303,8 +303,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                       <input 
                         type="number" 
                         className="w-20 p-1 border border-slate-300 rounded text-center font-bold text-slate-800"
-                        value={formData.dailyRateQuantity}
-                        onChange={e => setFormData({...formData, dailyRateQuantity: Number(e.target.value)})}
+                        value={formData.dailyratequantity}
+                        onChange={e => setFormData({...formData, dailyratequantity: Number(e.target.value)})}
                       />
                   </div>
               </div>
@@ -313,8 +313,8 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Motivo do Atraso</label>
                 <AutocompleteInput
-                    value={formData.delayReason || ''}
-                    onChange={value => setFormData({ ...formData, delayReason: value })}
+                    value={formData.delayreason || ''}
+                    onChange={value => setFormData({ ...formData, delayreason: value })}
                     suggestions={delayReasonHistory}
                     placeholder="Descreva o motivo..."
                 />
@@ -327,9 +327,9 @@ export const DailyRatesList: React.FC<DailyRatesListProps> = ({ records, fleet, 
                     <input 
                         type="file" 
                         className="absolute inset-0 opacity-0 cursor-pointer" 
-                        onChange={(e) => setFormData({...formData, hasAttachment: !!e.target.files?.length})}
+                        onChange={(e) => setFormData({...formData, hasattachment: !!e.target.files?.length})}
                     />
-                    {formData.hasAttachment ? (
+                    {formData.hasattachment ? (
                         <div className="flex items-center gap-2 text-emerald-600">
                              <FileText size={24} />
                              <span className="font-medium">Arquivo Anexado</span>

@@ -74,6 +74,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     setUserAvatar(newAvatar);
     const { error } = await supabase.from('profiles').update({ full_name: newName, avatar_url: newAvatar, updated_at: new Date().toISOString() }).eq('id', user.id);
     if (error) {
+      alert(`Erro ao atualizar perfil: ${error.message}`);
       console.error("Error updating profile:", error);
       return;
     }
@@ -86,6 +87,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const loadWithMeta = { ...newLoad, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('loads').insert(loadWithMeta).select().single();
     if (error) {
+      alert(`Erro ao adicionar carga: ${error.message}`);
       console.error("Error adding load:", error);
       return;
     }
@@ -98,6 +100,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleUpdateLoad = async (updatedLoad: Load) => {
     const { data, error } = await supabase.from('loads').update({ ...updatedLoad, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedLoad.id).select().single();
     if (error) {
+      alert(`Erro ao atualizar carga: ${error.message}`);
       console.error("Error updating load:", error);
       return;
     }
@@ -110,6 +113,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleDeleteLoad = async (id: string) => {
     const { error } = await supabase.from('loads').delete().eq('id', id);
     if (error) {
+      alert(`Erro ao excluir carga: ${error.message}`);
       console.error("Error deleting load:", error);
       return;
     }
@@ -124,7 +128,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const updatedLoadData = { 
       ...loadToUpdate, 
       status: LoadStatus.DELIVERED, 
-      deliveryDate: deliveryDate.split('T')[0]
+      deliverydate: deliveryDate.split('T')[0]
     };
     await handleUpdateLoad(updatedLoadData);
   };
@@ -133,6 +137,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const recordWithMeta = { ...newRecord, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('fleet').insert(recordWithMeta).select().single();
     if (error) {
+      alert(`Erro ao adicionar registro de frota: ${error.message}`);
       console.error("Error adding fleet record:", error);
       return;
     }
@@ -145,6 +150,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleUpdateFleetRecord = async (updatedRecord: FleetRecord) => {
     const { data, error } = await supabase.from('fleet').update({ ...updatedRecord, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedRecord.id).select().single();
     if (error) {
+      alert(`Erro ao atualizar registro de frota: ${error.message}`);
       console.error("Error updating fleet record:", error);
       return;
     }
@@ -157,6 +163,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleDeleteFleetRecord = async (id: string) => {
     const { error } = await supabase.from('fleet').delete().eq('id', id);
     if (error) {
+      alert(`Erro ao excluir registro de frota: ${error.message}`);
       console.error("Error deleting fleet record:", error);
       return;
     }
@@ -168,6 +175,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const clientWithMeta = { ...newClient, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('clients').insert(clientWithMeta).select().single();
     if (error) {
+      alert(`Erro ao adicionar cliente: ${error.message}`);
       console.error("Error adding client:", error);
       return;
     }
@@ -180,6 +188,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleUpdateClient = async (updatedClient: Client) => {
     const { data, error } = await supabase.from('clients').update({ ...updatedClient, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedClient.id).select().single();
     if (error) {
+      alert(`Erro ao atualizar cliente: ${error.message}`);
       console.error("Error updating client:", error);
       return;
     }
@@ -192,6 +201,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleDeleteClient = async (id: string) => {
     const { error } = await supabase.from('clients').delete().eq('id', id);
     if (error) {
+      alert(`Erro ao excluir cliente: ${error.message}`);
       console.error("Error deleting client:", error);
       return;
     }
@@ -203,6 +213,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const recordWithMeta = { ...newRecord, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('daily_rates').insert(recordWithMeta).select().single();
     if (error) {
+      alert(`Erro ao adicionar diária: ${error.message}`);
       console.error("Error adding daily rate:", error);
       return;
     }
@@ -216,6 +227,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
     const projectWithMeta = { ...newProject, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('projects').insert(projectWithMeta).select().single();
     if (error) {
+      alert(`Erro ao adicionar projeto: ${error.message}`);
       console.error("Error adding project:", error);
       return;
     }
@@ -228,6 +240,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleUpdateProject = async (updatedProject: Project) => {
     const { data, error } = await supabase.from('projects').update({ ...updatedProject, updated_by: user.email, updated_at: new Date().toISOString() }).eq('id', updatedProject.id).select().single();
     if (error) {
+      alert(`Erro ao atualizar projeto: ${error.message}`);
       console.error("Error updating project:", error);
       return;
     }
@@ -240,6 +253,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
   const handleDeleteProject = async (id: string) => {
     const { error } = await supabase.from('projects').delete().eq('id', id);
     if (error) {
+      alert(`Erro ao excluir projeto: ${error.message}`);
       console.error("Error deleting project:", error);
       return;
     }

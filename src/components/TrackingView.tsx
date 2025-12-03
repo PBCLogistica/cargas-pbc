@@ -38,7 +38,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
   useEffect(() => {
     if (!selectedLoadId) return;
     const fetchHistory = async () => {
-      const { data } = await supabase.from('tracking_updates').select('*').eq('loadId', selectedLoadId).order('timestamp', { ascending: false });
+      const { data } = await supabase.from('tracking_updates').select('*').eq('loadid', selectedLoadId).order('timestamp', { ascending: false });
       if (data) setHistory(data as TrackingUpdate[]);
     };
     fetchHistory();
@@ -56,12 +56,12 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
 
     const newUpdateData = {
       id: `TRK-${Date.now()}`,
-      loadId: selectedLoadId,
+      loadid: selectedLoadId,
       timestamp: updateForm.date,
       location: updateForm.location,
       status: finalStatus,
-      distanceToDelivery: updateForm.isFinishing ? 0 : (Number(updateForm.distance) || 0),
-      hasAttachment: updateForm.hasAttachment
+      distancetodelivery: updateForm.isFinishing ? 0 : (Number(updateForm.distance) || 0),
+      hasattachment: updateForm.hasAttachment
     };
 
     const { data, error } = await supabase.from('tracking_updates').insert(newUpdateData).select().single();
@@ -79,7 +79,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
     if (!updateForm.location || !selectedLoad) return;
     setIsCalculatingDistance(true);
     setTimeout(() => {
-        const lastDistance = loadHistory[0]?.distanceToDelivery;
+        const lastDistance = loadHistory[0]?.distancetodelivery;
         let newDistance;
         if (lastDistance && lastDistance > 50) {
             const travelSegment = 50 + Math.random() * 100;
@@ -125,7 +125,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
         </div>
         <div className="absolute inset-0 z-0 top-10 left-10 right-10 bottom-10 pointer-events-none">
             {activeLoads.map(load => {
-               const lastLoc = history.find(h => h.loadId === load.id)?.location || load.origin;
+               const lastLoc = history.find(h => h.loadid === load.id)?.location || load.origin;
                const pos = getPositionForLocation(lastLoc);
                const isDelayed = load.status === LoadStatus.DELAYED;
                return (
@@ -181,8 +181,8 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
                     <div className="flex-1 flex flex-col overflow-y-auto">
                     <div className="p-6 bg-white border-b border-slate-100">
                         <div className="flex items-start justify-between">
-                        <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Truck className="text-indigo-600" />{selectedLoad.origin} <span className="text-slate-300">→</span> {selectedLoad.destination}</h2><p className="text-sm text-slate-500 mt-1">Motorista: {selectedLoad.driver} • Placa: {selectedLoad.truckPlate} • Previsão: {new Date(selectedLoad.forecastDate).toLocaleDateString()}</p></div>
-                        <div className="text-right"><div className="text-2xl font-bold text-slate-800">{lastUpdate ? `${lastUpdate.distanceToDelivery} km` : '---'}</div><p className="text-xs text-slate-500 uppercase font-semibold">Distância Restante</p></div>
+                        <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Truck className="text-indigo-600" />{selectedLoad.origin} <span className="text-slate-300">→</span> {selectedLoad.destination}</h2><p className="text-sm text-slate-500 mt-1">Motorista: {selectedLoad.driver} • Placa: {selectedLoad.truckplate} • Previsão: {new Date(selectedLoad.forecastdate).toLocaleDateString()}</p></div>
+                        <div className="text-right"><div className="text-2xl font-bold text-slate-800">{lastUpdate ? `${lastUpdate.distancetodelivery} km` : '---'}</div><p className="text-xs text-slate-500 uppercase font-semibold">Distância Restante</p></div>
                         </div>
                     </div>
                     <div className="h-64 bg-slate-100 w-full relative group shrink-0">
@@ -233,10 +233,10 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
                                     <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                                         <div className="flex justify-between items-start mb-1"><span className="font-bold text-slate-700 text-sm truncate w-24">{update.location}</span><span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 whitespace-nowrap">{new Date(update.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
                                         <div className={`text-xs mb-1 font-medium ${update.status === 'Entrega Finalizada' ? 'text-emerald-600' : 'text-slate-500'}`}>{update.status}</div>
-                                        {update.distanceToDelivery > 0 && (<div className="text-[10px] text-indigo-600 font-medium">Faltam {update.distanceToDelivery} km</div>)}
+                                        {update.distancetodelivery > 0 && (<div className="text-[10px] text-indigo-600 font-medium">Faltam {update.distancetodelivery} km</div>)}
                                         <div className="text-[10px] text-slate-400 mt-2 flex items-center justify-between">
                                             <div className="flex items-center gap-1"><Calendar size={10} />{new Date(update.timestamp).toLocaleDateString()}</div>
-                                            {update.hasAttachment && (<div className="flex items-center gap-1 text-indigo-500 cursor-pointer hover:underline" title="Ver Comprovante"><FileText size={10} /><span>Comprovante</span></div>)}
+                                            {update.hasattachment && (<div className="flex items-center gap-1 text-indigo-500 cursor-pointer hover:underline" title="Ver Comprovante"><FileText size={10} /><span>Comprovante</span></div>)}
                                         </div>
                                     </div>
                                 </div>

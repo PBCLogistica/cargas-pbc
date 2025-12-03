@@ -8,35 +8,24 @@ export enum LoadStatus {
 
 export interface Load {
   id: string;
-  // General Info
-  date: string; // Data emissão
+  date: string;
   client: string;
   origin: string;
   destination: string;
-  
-  // Transport Info
   driver: string;
-  vehicleType: string;
-  truckPlate: string;
-  trailerPlate: string;
-  weight: number; // Capacidade in kg
-  
-  // Dates
-  forecastDate: string;
-  deliveryDate?: string;
-  
-  // Financials
-  companyValue: number; // Valor empresa
-  driverValue: number;  // Valor motorista
-  finalValue: number;   // Valor final
-  toll: number;        // Pedágio
-  adValorem: number;   // Advaloren
-  
-  // Taxes
+  vehicletype: string;
+  truckplate: string;
+  trailerplate: string;
+  weight: number;
+  forecastdate: string;
+  deliverydate?: string;
+  companyvalue: number;
+  drivervalue: number;
+  finalvalue: number;
+  toll: number;
+  advalorem: number;
   icms: boolean;
-  pisConfins: boolean;
-  
-  // Meta
+  pisconfins: boolean;
   status: LoadStatus;
   observation: string;
   updated_by?: string;
@@ -44,50 +33,50 @@ export interface Load {
 
 export interface FleetRecord {
   id: string;
-  driverName: string;
-  truckPlate: string;
-  trailerPlate: string;
-  truckType: string;
-  ownershipType: 'Frota' | 'Terceiro';
-  capacity: number; // in kg
+  drivername: string;
+  truckplate: string;
+  trailerplate: string;
+  trucktype: string;
+  ownershiptype: 'Frota' | 'Terceiro';
+  capacity: number;
   updated_by?: string;
 }
 
 export interface Client {
   id: string;
-  companyName: string;
-  productType: string;
+  companyname: string;
+  producttype: string;
   city: string;
-  paymentType: 'Boleto' | 'Depósito';
-  paymentTerm: string; // e.g. "30 dias"
+  paymenttype: 'Boleto' | 'Depósito';
+  paymentterm: string;
   contact: string;
   updated_by?: string;
 }
 
 export interface DailyRateRecord {
   id: string;
-  clientName: string;
-  driverName: string;
-  truckPlate: string;
-  trailerPlate: string;
-  arrivalDateTime: string; // ISO String
-  departureDateTime: string; // ISO String
-  totalHours: number;
-  dailyRateQuantity: number;
-  delayReason: string;
-  hasAttachment: boolean;
+  clientname: string;
+  drivername: string;
+  truckplate: string;
+  trailerplate: string;
+  arrivaldatetime: string;
+  departuredatetime: string;
+  totalhours: number;
+  dailyratequantity: number;
+  delayreason: string;
+  hasattachment: boolean;
   updated_by?: string;
 }
 
 export interface TrackingUpdate {
   id: string;
-  loadId: string;
+  loadid: string;
   timestamp: string;
   location: string;
   status: string;
-  distanceToDelivery: number; // km
+  distancetodelivery: number;
   notes?: string;
-  hasAttachment?: boolean;
+  hasattachment?: boolean;
 }
 
 export interface DashboardStats {
@@ -114,14 +103,14 @@ export enum ProjectStatus {
 
 export interface Project {
   id: string;
-  projectName: string;
-  clientName: string;
+  projectname: string;
+  clientname: string;
   scope: string;
-  totalValue: number;
-  valuePerLoad: number;
-  loadQuantity: number;
-  paymentTerms: string;
-  startDate: string;
+  totalvalue: number;
+  valueperload: number;
+  loadquantity: number;
+  paymentterms: string;
+  startdate: string;
   deadline: string;
   status: ProjectStatus;
   responsible: string;
