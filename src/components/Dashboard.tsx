@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, ComposedChart, Line, AreaChart, Area, Legend, LabelList
@@ -83,7 +83,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   .slice(0, 5);
 
   // --- Report 3: Monthly Revenue vs Meta (Dynamic) ---
-  const processMonthlyRevenue = (loads: Load[], goal: number) => {
+  const revenueVsGoalData = useMemo(() => {
     const monthlyData: { [key: string]: number } = {};
 
     loads.forEach(load => {
@@ -111,12 +111,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
         result.push({
             name: monthNames[month],
             receita: revenue,
-            meta: goal
+            meta: monthlyGoal
         });
     }
     return result;
-  };
-  const revenueVsGoalData = processMonthlyRevenue(loads, monthlyGoal);
+  }, [loads, monthlyGoal]);
   
   // --- Report 4: Monthly Variation (Dynamic) ---
   const weeklyRevenue = currentMonthLoads.reduce((acc, load) => {
