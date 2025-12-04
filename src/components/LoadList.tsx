@@ -400,12 +400,16 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Tomador do Frete</label>
-                    <AutocompleteInput
-                        value={formData.tomador || ''}
-                        onChange={value => setFormData({ ...formData, tomador: value })}
-                        suggestions={clients.map(c => c.companyname)}
-                        placeholder="Selecione ou digite o tomador"
-                    />
+                    <select 
+                        className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white"
+                        value={formData.tomador} 
+                        onChange={e => setFormData({...formData, tomador: e.target.value})}
+                    >
+                        <option value="">Selecione um tomador...</option>
+                        {clients.map(client => (
+                            <option key={client.id} value={client.companyname}>{client.companyname}</option>
+                        ))}
+                    </select>
                   </div>
                 </div>
 
