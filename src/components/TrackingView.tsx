@@ -30,13 +30,19 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
   useEffect(() => {
     const filtered = loads.filter(l => l.status === LoadStatus.IN_TRANSIT || l.status === LoadStatus.PENDING || l.status === LoadStatus.DELAYED);
     setActiveLoads(filtered);
-    if (filtered.length > 0 && !selectedLoadId) {
-      setSelectedLoadId(filtered[0].id);
+
+    const isSelectedLoadActive = filtered.some(l => l.id === selectedLoadId);
+
+    if (!isSelectedLoadActive) {
+      setSelectedLoadId(filtered.length > 0 ? filtered[0].id : null);
     }
-  }, [loads, selectedLoadId]);
+  }, [loads]);
 
   useEffect(() => {
-    if (!selectedLoadId) return;
+    if (!selectedLoadId) {
+      setHistory([]);
+      return;
+    };
     const fetchHistory = async () => {
       const { data } = await supabase.from('tracking_updates').select('*').eq('loadid', selectedLoadId).order('timestamp', { ascending: false });
       if (data) setHistory(data as TrackingUpdate[]);
