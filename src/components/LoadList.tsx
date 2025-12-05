@@ -303,6 +303,12 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
           <tbody className="divide-y divide-slate-100">
             {filteredLoads.map((load) => {
               const fleetInfo = fleet.find(f => f.drivername === load.driver);
+              const ownershipType = fleetInfo ? fleetInfo.ownershiptype : 'Terceiro';
+              const isFrota = ownershipType === 'Frota';
+              const tagClasses = isFrota
+                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                : 'bg-orange-50 text-orange-700 border-orange-200';
+
               return (
                 <tr key={load.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-4 align-top">
@@ -326,15 +332,9 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                   <td className="px-6 py-4 align-top">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-slate-900">{load.driver}</span>
-                      {fleetInfo && (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                          fleetInfo.ownershiptype === 'Frota' 
-                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                          : 'bg-orange-50 text-orange-700 border-orange-200'
-                        }`}>
-                          {fleetInfo.ownershiptype}
-                        </span>
-                      )}
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${tagClasses}`}>
+                        {ownershipType}
+                      </span>
                     </div>
                     <div className="text-xs text-slate-500 mt-1">{load.vehicletype} • {load.truckplate}</div>
                   </td>
