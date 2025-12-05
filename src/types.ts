@@ -14,7 +14,7 @@ export interface Load {
   client: string;
   origin: string;
   destinations: string[];
-  destination_values: number[]; // Novo campo
+  destination_values: number[];
   driver: string;
   vehicletype: string;
   truckplate: string;
@@ -33,6 +33,10 @@ export interface Load {
   observation: string;
   tomador?: string;
   updated_by?: string;
+  // Novos campos para detalhamento
+  driver_values?: number[];
+  toll_values?: number[];
+  advalorem_values?: number[];
 }
 
 export interface FleetRecord {

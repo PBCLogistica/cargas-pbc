@@ -22,6 +22,9 @@ const emptyForm: Partial<Load> = {
   origin: '',
   destinations: [''],
   destination_values: [0],
+  driver_values: [0],
+  toll_values: [0],
+  advalorem_values: [0],
   driver: '',
   vehicletype: '',
   truckplate: '',
@@ -51,11 +54,21 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
   const [observationHistory, addObservation] = useInputHistory('observation');
 
   useEffect(() => {
-    const totalCompanyValue = formData.destination_values?.reduce((sum, value) => sum + (value || 0), 0) || 0;
-    if (totalCompanyValue !== formData.companyvalue) {
-      setFormData(prev => ({ ...prev, companyvalue: totalCompanyValue }));
-    }
-  }, [formData.destination_values]);
+    const sumValues = (arr: number[] | undefined) => arr?.reduce((sum, value) => sum + (value || 0), 0) || 0;
+
+    const totalCompanyValue = sumValues(formData.destination_values);
+    const totalDriverValue = sumValues(formData.driver_values);
+    const totalTollValue = sumValues(formData.toll_values);
+    const totalAdValoremValue = sumValues(formData.advalorem_values);
+
+    setFormData(prev => ({ 
+      ...prev, 
+      companyvalue: totalCompanyValue,
+      drivervalue: totalDriverValue,
+      toll: totalTollValue,
+      advalorem: totalAdValoremValue,
+    }));
+  }, [formData.destination_values, formData.driver_values, formData.toll_values, formData.advalorem_values]);
 
   const handleDriverChange = (driverName: string) => {
     const selectedFleetRecord = fleet.find(f => f.drivername === driverName);
@@ -77,7 +90,13 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
 
   const openModalForEdit = (load: Load) => {
     setEditingLoad(load);
-    setFormData(load);
+    setFormData({
+      ...load,
+      destination_values: load.destination_values || load.destinations.map(() => 0),
+      driver_values: load.driver_values || load.destinations.map(() => 0),
+      toll_values: load.toll_values || load.destinations.map(() => 0),
+      advalorem_values: load.advalorem_values || load.destinations.map(() => 0),
+    });
     setIsModalOpen(true);
   };
 
@@ -137,6 +156,9 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
         origin: formData.origin || '',
         destinations: finalDestinations,
         destination_values: formData.destination_values || [],
+        driver_values: formData.driver_values || [],
+        toll_values: formData.toll_values || [],
+        advalorem_values: formData.advalorem_values || [],
         driver: formData.driver || '',
         vehicletype: formData.vehicletype || '',
         truckplate: formData.truckplate || '',
@@ -205,32 +227,41 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     setFormData(prev => ({ ...prev, [fieldName]: numberValue }));
   };
 
+  const handleArrayValueChange = (value: string, index: number, field: 'destination_values' | 'driver_values' | 'toll_values' | 'advalorem_values') => {
+    const newValues = [...(formData[field] || [])];
+    const numericString = value.replace(/\D/g, '');
+    newValues[index] = numericString === '' ? 0 : parseFloat(numericString) / 100;
+    setFormData({ ...formData, [field]: newValues });
+  };
+
   const handleDestinationChange = (value: string, index: number) => {
     const newDestinations = [...(formData.destinations || [])];
     newDestinations[index] = value;
     setFormData({ ...formData, destinations: newDestinations });
   };
-  
-  const handleDestinationValueChange = (value: string, index: number) => {
-    const newValues = [...(formData.destination_values || [])];
-    const numericString = value.replace(/\D/g, '');
-    newValues[index] = numericString === '' ? 0 : parseFloat(numericString) / 100;
-    setFormData({ ...formData, destination_values: newValues });
-  };
 
   const addDestination = () => {
-    setFormData({ 
-      ...formData, 
-      destinations: [...(formData.destinations || []), ''],
-      destination_values: [...(formData.destination_values || []), 0]
-    });
+    setFormData(prev => ({ 
+      ...prev, 
+      destinations: [...(prev.destinations || []), ''],
+      destination_values: [...(prev.destination_values || []), 0],
+      driver_values: [...(prev.driver_values || []), 0],
+      toll_values: [...(prev.toll_values || []), 0],
+      advalorem_values: [...(prev.advalorem_values || []), 0],
+    }));
   };
 
   const removeDestination = (index: number) => {
     if (formData.destinations && formData.destinations.length > 1) {
-      const newDestinations = formData.destinations.filter((_, i) => i !== index);
-      const newValues = formData.destination_values?.filter((_, i) => i !== index);
-      setFormData({ ...formData, destinations: newDestinations, destination_values: newValues });
+      const filterByIndex = (_: any, i: number) => i !== index;
+      setFormData(prev => ({
+        ...prev,
+        destinations: prev.destinations?.filter(filterByIndex),
+        destination_values: prev.destination_values?.filter(filterByIndex),
+        driver_values: prev.driver_values?.filter(filterByIndex),
+        toll_values: prev.toll_values?.filter(filterByIndex),
+        advalorem_values: prev.advalorem_values?.filter(filterByIndex),
+      }));
     }
   };
 
@@ -314,64 +345,72 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeModal} />
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl relative z-10 overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl relative z-10 overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
               <h3 className="text-lg font-bold text-slate-800">{editingLoad ? `Editar Carga #${editingLoad.numeric_id}` : 'Nova Carga'}</h3>
               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-1"><X size={20} /></button>
             </div>
             <div className="p-6 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                {/* Coluna Esquerda: Dados Gerais e Rota */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Dados Gerais</h4>
+                  <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Dados Gerais e Rota</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div><label className="block text-sm font-medium text-slate-700 mb-1">Data Emissão</label><input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
                     <div><label className="block text-sm font-medium text-slate-700 mb-1">Status</label><select className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as LoadStatus})}>{Object.values(LoadStatus).map(s => <option key={s} value={s}>{s}</option>)}</select></div>
                   </div>
                   <div><label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label><select className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})}><option value="">Selecione um cliente...</option>{clients.map(client => (<option key={client.id} value={client.companyname}>{client.companyname}</option>))}</select></div>
                   <div><label className="block text-sm font-medium text-slate-700 mb-1">Tomador do Frete</label><select className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white" value={formData.tomador} onChange={e => setFormData({...formData, tomador: e.target.value})}><option value="">Selecione um tomador...</option>{clients.map(client => (<option key={client.id} value={client.companyname}>{client.companyname}</option>))}</select></div>
-                </div>
-                <div className="space-y-4">
-                   <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Rota e Veículo</h4>
-                   <div><label className="block text-sm font-medium text-slate-700 mb-1">Origem</label><AutocompleteInput value={formData.origin || ''} onChange={value => setFormData({ ...formData, origin: value })} suggestions={BRAZILIAN_CITIES} placeholder="Cidade, UF" /></div>
-                   <div className="space-y-2">
-                      <label className="block text-sm font-medium text-slate-700">Destinos e Valores</label>
-                      {formData.destinations?.map((dest, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <AutocompleteInput value={dest} onChange={value => handleDestinationChange(value, index)} suggestions={BRAZILIAN_CITIES} placeholder={`Destino ${index + 1}`} />
-                          <div className="relative w-32"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0,00" value={(formData.destination_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleDestinationValueChange(e.target.value, index)} /></div>
-                          {formData.destinations && formData.destinations.length > 1 && (<button onClick={() => removeDestination(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-full"><MinusCircle size={18} /></button>)}
-                        </div>
-                      ))}
-                      <button onClick={addDestination} className="text-sm font-medium text-indigo-600 flex items-center gap-1 hover:underline"><Plus size={14} />Adicionar outro destino</button>
-                   </div>
-                   <div><label className="block text-sm font-medium text-slate-700 mb-1">Motorista</label><select className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" value={formData.driver} onChange={e => handleDriverChange(e.target.value)}><option value="">Selecione um motorista...</option>{fleet.map(record => (<option key={record.id} value={record.drivername}>{record.drivername} - {record.trucktype}</option>))}</select></div>
-                </div>
-                <div className="space-y-4">
-                   <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Prazos e Detalhes</h4>
-                   <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-slate-700 mb-1">Origem</label><AutocompleteInput value={formData.origin || ''} onChange={value => setFormData({ ...formData, origin: value })} suggestions={BRAZILIAN_CITIES} placeholder="Cidade, UF" /></div>
+                  <div><label className="block text-sm font-medium text-slate-700 mb-1">Motorista</label><select className="w-full p-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none" value={formData.driver} onChange={e => handleDriverChange(e.target.value)}><option value="">Selecione um motorista...</option>{fleet.map(record => (<option key={record.id} value={record.drivername}>{record.drivername} - {record.trucktype}</option>))}</select></div>
+                  <div className="grid grid-cols-2 gap-4">
                       <div><label className="block text-sm font-medium text-slate-700 mb-1">Previsão Entrega</label><input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm" value={formData.forecastdate} onChange={e => setFormData({...formData, forecastdate: e.target.value})} /></div>
                       <div><label className="block text-sm font-medium text-slate-700 mb-1">Data Entrega</label><input type="date" className="w-full p-2 border border-slate-200 rounded-lg text-sm" value={formData.deliverydate} onChange={e => setFormData({...formData, deliverydate: e.target.value})} /></div>
-                   </div>
-                    <div><label className="block text-sm font-medium text-slate-700 mb-1">Observação</label><AutocompleteInput value={formData.observation || ''} onChange={value => setFormData({ ...formData, observation: value })} suggestions={observationHistory} placeholder="Observações gerais da carga..." /></div>
+                  </div>
+                  <div><label className="block text-sm font-medium text-slate-700 mb-1">Observação</label><AutocompleteInput value={formData.observation || ''} onChange={value => setFormData({ ...formData, observation: value })} suggestions={observationHistory} placeholder="Observações gerais da carga..." /></div>
                 </div>
-                 <div className="space-y-4">
-                   <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Financeiro</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Valor Empresa (Total)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500" readOnly value={(formData.companyvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} /></div></div>
-                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Valor Motorista</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00" value={(formData.drivervalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'drivervalue', true)} /></div></div>
-                   </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Pedágio</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00" value={(formData.toll || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'toll', true)} /></div></div>
-                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Ad Valorem</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00" value={(formData.advalorem || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'advalorem', true)} /></div></div>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4 pt-2">
-                        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.icms} onChange={e => setFormData({...formData, icms: e.target.checked})} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"/><span className="text-sm text-slate-700">Incide ICMS</span></label>
-                         <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.pisconfins} onChange={e => setFormData({...formData, pisconfins: e.target.checked})} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"/><span className="text-sm text-slate-700">Incide PIS/COFINS</span></label>
-                   </div>
-                   <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-2">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Valor Final</label>
-                        <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-lg font-bold text-emerald-600 bg-white" placeholder="R$ 0,00" value={(formData.finalvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'finalvalue', true)} /></div>
-                   </div>
+
+                {/* Coluna Direita: Detalhamento Financeiro por Destino */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Destinos e Detalhamento Financeiro</h4>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {formData.destinations?.map((dest, index) => (
+                      <div key={index} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="font-bold text-slate-800">Destino {index + 1}</span>
+                          {formData.destinations && formData.destinations.length > 1 && (
+                            <button onClick={() => removeDestination(index)} className="absolute top-2 right-2 p-1 text-red-500 hover:bg-red-100 rounded-full"><MinusCircle size={18} /></button>
+                          )}
+                        </div>
+                        <AutocompleteInput value={dest} onChange={value => handleDestinationChange(value, index)} suggestions={BRAZILIAN_CITIES} placeholder={`Cidade, UF`} />
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3">
+                          <div><label className="block text-xs font-medium text-slate-600 mb-1">Valor Empresa</label><div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" value={(formData.destination_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleArrayValueChange(e.target.value, index, 'destination_values')} /></div></div>
+                          <div><label className="block text-xs font-medium text-slate-600 mb-1">Valor Motorista</label><div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" value={(formData.driver_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleArrayValueChange(e.target.value, index, 'driver_values')} /></div></div>
+                          <div><label className="block text-xs font-medium text-slate-600 mb-1">Pedágio</label><div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" value={(formData.toll_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleArrayValueChange(e.target.value, index, 'toll_values')} /></div></div>
+                          <div><label className="block text-xs font-medium text-slate-600 mb-1">Ad Valorem</label><div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" value={(formData.advalorem_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleArrayValueChange(e.target.value, index, 'advalorem_values')} /></div></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={addDestination} className="w-full text-sm font-medium text-indigo-600 flex items-center justify-center gap-1 py-2 border-2 border-dashed border-slate-300 rounded-lg hover:bg-indigo-50 transition-colors"><Plus size={14} />Adicionar Destino</button>
+                </div>
+              </div>
+              {/* Seção de Totais e Impostos */}
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <h4 className="font-semibold text-slate-900 mb-4">Totais e Impostos</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200"><label className="block text-xs font-medium text-slate-500">Total Empresa</label><div className="text-lg font-bold text-slate-800">{(formData.companyvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200"><label className="block text-xs font-medium text-slate-500">Total Motorista</label><div className="text-lg font-bold text-slate-800">{(formData.drivervalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200"><label className="block text-xs font-medium text-slate-500">Total Pedágio</label><div className="text-lg font-bold text-slate-800">{(formData.toll || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div></div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200"><label className="block text-xs font-medium text-slate-500">Total Ad Valorem</label><div className="text-lg font-bold text-slate-800">{(formData.advalorem || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div></div>
+                </div>
+                <div className="flex items-center gap-8 mt-4">
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.icms} onChange={e => setFormData({...formData, icms: e.target.checked})} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"/><span className="text-sm text-slate-700">Incide ICMS</span></label>
+                    <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={formData.pisconfins} onChange={e => setFormData({...formData, pisconfins: e.target.checked})} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"/><span className="text-sm text-slate-700">Incide PIS/COFINS</span></label>
+                </div>
+                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 mt-4">
+                    <label className="block text-sm font-medium text-emerald-800 mb-1">Valor Final (para NF-e)</label>
+                    <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600">R$</span><input type="text" className="w-full pl-8 p-2 border border-emerald-300 rounded-lg text-xl font-bold text-emerald-700 bg-white" placeholder="R$ 0,00" value={(formData.finalvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'finalvalue', true)} /></div>
                 </div>
               </div>
             </div>

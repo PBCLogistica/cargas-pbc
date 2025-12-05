@@ -95,14 +95,19 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                   
                   {selectedLoad.destinations.length > 1 ? (
                     <div>
-                      <dt className="text-slate-500 flex items-center gap-2 mb-2"><MapPin size={14} className="text-red-500"/>Destinos Múltiplos</dt>
-                      <dd className="font-medium text-slate-800 text-right space-y-1 pl-6">
+                      <dt className="text-slate-500 flex items-center gap-2 mb-2"><MapPin size={14} className="text-red-500"/>Destinos e Valores</dt>
+                      <dd className="font-medium text-slate-800 text-right space-y-2 pl-6">
                         {selectedLoad.destinations.map((dest, index) => (
-                          <div key={index} className="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-100">
-                            <span className="text-slate-600">{dest}</span>
-                            <span className="font-bold text-emerald-700">
-                              {formatCurrency(selectedLoad.destination_values?.[index] || 0)}
-                            </span>
+                          <div key={index} className="p-3 bg-slate-50 rounded-md border border-slate-100">
+                            <div className="flex justify-between items-center font-bold text-slate-700">
+                              <span>{dest}</span>
+                              <span>{formatCurrency(selectedLoad.destination_values?.[index] || 0)}</span>
+                            </div>
+                            <div className="text-xs mt-2 space-y-1 text-slate-500">
+                                <div className="flex justify-between"><span>Motorista:</span><span>{formatCurrency(selectedLoad.driver_values?.[index] || 0)}</span></div>
+                                <div className="flex justify-between"><span>Pedágio:</span><span>{formatCurrency(selectedLoad.toll_values?.[index] || 0)}</span></div>
+                                <div className="flex justify-between"><span>Ad Valorem:</span><span>{formatCurrency(selectedLoad.advalorem_values?.[index] || 0)}</span></div>
+                            </div>
                           </div>
                         ))}
                       </dd>
@@ -121,7 +126,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
               <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <DollarSign size={20} className="text-emerald-600"/>
-                Composição de Valores
+                Composição de Valores Totais
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm"><span className="text-slate-600">Valor Bruto (Empresa)</span><span className="font-medium text-slate-900">{formatCurrency(selectedLoad.companyvalue)}</span></div>
