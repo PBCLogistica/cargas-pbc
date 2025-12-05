@@ -47,16 +47,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   const completedLoads = currentMonthLoads.filter(l => l.status === LoadStatus.DELIVERED).length;
   const percentReached = monthlyGoal > 0 ? (totalRevenue / monthlyGoal) * 100 : 0;
 
-  // --- Report 1: Fleet vs Third Party Revenue ---
-  const revenueByOwnership = loads.reduce((acc, load) => {
+  // --- Report 1: Fleet vs Third Party Load Count ---
+  const loadsByOwnership = loads.reduce((acc, load) => {
     const driverRecord = fleet.find(f => f.drivername === load.driver);
     const type = driverRecord?.ownershiptype === 'Frota' ? 'Frota Própria' : 'Terceiros';
     
     const existing = acc.find(item => item.name === type);
     if (existing) {
-      existing.value += load.finalvalue;
+      existing.value += 1;
     } else {
-      acc.push({ name: type, value: load.finalvalue });
+      acc.push({ name: type, value: 1 });
     }
     return acc;
   }, [] as { name: string, value: number }[]);
@@ -251,13 +251,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                   <Users size={20} className="text-indigo-600"/>
                   Frota x Terceiros
              </h3>
-             <p className="text-xs text-slate-500 mb-6">Distribuição de faturamento por vínculo</p>
+             <p className="text-xs text-slate-500 mb-6">Distribuição de cargas por vínculo</p>
              
              <div className="h-[250px] w-full relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={revenueByOwnership}
+                    data={loadsByOwnership}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -265,30 +265,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {revenueByOwnership.map((entry, index) => (
+                    {loadsByOwnership.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={fleetColors[index % fleetColors.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: number) => [`${value} Cargas`, 'Quantidade']} />
                 </PieChart>
               </ResponsiveContainer>
                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="text-center">
-                  <span className="text-sm text-slate-400 font-medium">Total</span>
-                  <p className="text-xl font-bold text-slate-800">100%</p>
+                  <span className="text-sm text-slate-400 font-medium">Total Cargas</span>
+                  <p className="text-xl font-bold text-slate-800">{loads.length}</p>
                 </div>
               </div>
              </div>
              
              <div className="space-y-3 mt-2">
-               {revenueByOwnership.map((item, index) => (
+               {loadsByOwnership.map((item, index) => (
                  <div key={item.name} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: fleetColors[index % fleetColors.length] }} />
                       <span className="text-sm font-medium text-slate-700">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-slate-900">
-                      {((item.value / loads.reduce((acc, l) => acc + l.finalvalue, 0)) * 100).toFixed(0)}%
+                      {loads.length > 0 ? ((item.value / loads.length) * 100).toFixed(0) : 0}%
                     </span>
                  </div>
                ))}
