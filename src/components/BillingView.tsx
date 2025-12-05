@@ -53,7 +53,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                 <span className="text-xs text-slate-500">{new Date(load.date).toLocaleDateString()}</span>
               </div>
               <p className="text-sm text-slate-600 truncate">{load.client}</p>
-              <p className="text-xs text-slate-400 truncate">{load.origin} → {load.destination}</p>
+              <p className="text-xs text-slate-400 truncate">{load.origin} → {load.destinations.join(', ')}</p>
             </button>
           ))}
         </div>
@@ -92,7 +92,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                 <h3 className="font-semibold text-slate-700">Rota</h3>
                 <dl className="text-sm space-y-2">
                   <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-indigo-500"/>Origem</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.origin}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.destination}</dd></div>
+                  <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.destinations.join(', ')}</dd></div>
                 </dl>
               </div>
             </div>

@@ -13,7 +13,7 @@ export interface Load {
   date: string;
   client: string;
   origin: string;
-  destination: string;
+  destinations: string[]; // Alterado de destination: string
   driver: string;
   vehicletype: string;
   truckplate: string;

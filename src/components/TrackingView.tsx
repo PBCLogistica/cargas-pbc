@@ -175,7 +175,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
                 {activeLoads.map(load => (
                     <button key={load.id} onClick={() => setSelectedLoadId(load.id)} className={`w-full text-left p-4 border-b border-slate-100 transition-colors hover:bg-white ${selectedLoadId === load.id ? 'bg-white border-l-4 border-l-indigo-600 shadow-sm' : 'border-l-4 border-l-transparent'}`}>
                     <div className="flex justify-between items-start mb-1"><span className="font-bold text-slate-800 text-sm">{load.id}</span><span className={`text-[10px] px-2 py-0.5 rounded-full ${load.status === LoadStatus.DELAYED ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600'}`}>{load.status}</span></div>
-                    <div className="text-xs text-slate-500 mb-1 truncate">{load.origin} → {load.destination}</div>
+                    <div className="text-xs text-slate-500 mb-1 truncate">{load.origin} → {load.destinations.join(', ')}</div>
                     <div className="flex items-center gap-1 text-xs text-slate-400"><Navigation size={12} /><span>{load.driver}</span></div>
                     </button>
                 ))}
@@ -187,7 +187,7 @@ export const TrackingView: React.FC<TrackingViewProps> = ({ loads, supabase, onU
                     <div className="flex-1 flex flex-col overflow-y-auto">
                     <div className="p-6 bg-white border-b border-slate-100">
                         <div className="flex items-start justify-between">
-                        <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Truck className="text-indigo-600" />{selectedLoad.origin} <span className="text-slate-300">→</span> {selectedLoad.destination}</h2><p className="text-sm text-slate-500 mt-1">Motorista: {selectedLoad.driver} • Placa: {selectedLoad.truckplate} • Previsão: {new Date(selectedLoad.forecastdate).toLocaleDateString()}</p></div>
+                        <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><Truck className="text-indigo-600" />{selectedLoad.origin} <span className="text-slate-300">→</span> {selectedLoad.destinations.join(' → ')}</h2><p className="text-sm text-slate-500 mt-1">Motorista: {selectedLoad.driver} • Placa: {selectedLoad.truckplate} • Previsão: {new Date(selectedLoad.forecastdate).toLocaleDateString()}</p></div>
                         <div className="text-right"><div className="text-2xl font-bold text-slate-800">{lastUpdate ? `${lastUpdate.distancetodelivery} km` : '---'}</div><p className="text-xs text-slate-500 uppercase font-semibold">Distância Restante</p></div>
                         </div>
                     </div>
