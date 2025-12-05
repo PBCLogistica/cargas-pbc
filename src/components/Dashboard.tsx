@@ -6,11 +6,6 @@ import {
 import { Load, LoadStatus, FleetRecord } from '../types';
 import { TrendingUp, AlertTriangle, CheckCircle, Package, DollarSign, Target, Users, RefreshCw } from 'lucide-react';
 
-interface DashboardProps {
-  loads: Load[];
-  fleet: FleetRecord[];
-}
-
 // --- Helper Functions for Formatting ---
 const formatCurrency = (value: number) => 
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -59,9 +54,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
     
     const existing = acc.find(item => item.name === type);
     if (existing) {
-      existing.value += load.companyvalue;
+      existing.value += load.finalvalue;
     } else {
-      acc.push({ name: type, value: load.companyvalue });
+      acc.push({ name: type, value: load.finalvalue });
     }
     return acc;
   }, [] as { name: string, value: number }[]);
@@ -293,7 +288,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                       <span className="text-sm font-medium text-slate-700">{item.name}</span>
                     </div>
                     <span className="text-sm font-bold text-slate-900">
-                      {((item.value / loads.reduce((acc, l) => acc + l.companyvalue, 0)) * 100).toFixed(0)}%
+                      {((item.value / loads.reduce((acc, l) => acc + l.finalvalue, 0)) * 100).toFixed(0)}%
                     </span>
                  </div>
                ))}
