@@ -301,43 +301,57 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filteredLoads.map((load) => (
-              <tr key={load.id} className="hover:bg-slate-50 transition-colors group">
-                <td className="px-6 py-4 align-top">
-                  <div className="font-bold text-slate-900">#{load.numeric_id}</div>
-                  <div className="flex items-center gap-1 text-slate-500 text-xs mt-1"><Calendar size={12} />{new Date(load.date).toLocaleDateString('pt-BR')}</div>
-                  <div className="text-[10px] text-slate-400 font-mono mt-1 opacity-0 group-hover:opacity-100 transition-opacity">{load.id}</div>
-                </td>
-                <td className="px-6 py-4 align-top">
-                  <div className="font-bold text-slate-900 flex items-center gap-2"><Building2 size={14} className="text-slate-400" />{load.client}</div>
-                  {load.tomador && (<div className="text-xs text-slate-500 mt-1 pl-6">Tomador: {load.tomador}</div>)}
-                  <div className="flex flex-col gap-1 mt-2 pl-6">
-                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div><span className="text-slate-600">{load.origin}</span></div>
-                    {load.destinations.map((dest, index) => (
-                      <React.Fragment key={index}>
-                        <div className="border-l border-slate-300 h-3 ml-1 my-0.5"></div>
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-slate-400"></div><span className="text-slate-600">{dest} - <span className="font-medium text-emerald-700">{(load.destination_values?.[index] || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></span></div>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 align-top">
-                  <div className="font-medium text-slate-900">{load.driver}</div>
-                  <div className="text-xs text-slate-500 mt-1">{load.vehicletype} • {load.truckplate}</div>
-                </td>
-                <td className="px-6 py-4 align-top text-right">
-                  <div className="flex items-center justify-end gap-1 text-slate-900 font-medium"><DollarSign size={14} className="text-slate-400" />{load.companyvalue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                  <div className="flex items-center justify-end gap-1 text-xs text-slate-500 mt-1"><Weight size={12} />{(load.weight / 1000).toFixed(1)}t</div>
-                </td>
-                <td className="px-6 py-4 align-top text-center"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(load.status)}`}>{load.status}</span></td>
-                <td className="px-6 py-4 align-top text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <button onClick={() => openModalForEdit(load)} className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar Carga"><Pencil size={18} /></button>
-                    <button onClick={() => handleDelete(load.id, `#${load.numeric_id}`)} className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Excluir Carga"><Trash2 size={18} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filteredLoads.map((load) => {
+              const fleetInfo = fleet.find(f => f.drivername === load.driver);
+              return (
+                <tr key={load.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-6 py-4 align-top">
+                    <div className="font-bold text-slate-900">#{load.numeric_id}</div>
+                    <div className="flex items-center gap-1 text-slate-500 text-xs mt-1"><Calendar size={12} />{new Date(load.date).toLocaleDateString('pt-BR')}</div>
+                    <div className="text-[10px] text-slate-400 font-mono mt-1 opacity-0 group-hover:opacity-100 transition-opacity">{load.id}</div>
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                    <div className="font-bold text-slate-900 flex items-center gap-2"><Building2 size={14} className="text-slate-400" />{load.client}</div>
+                    {load.tomador && (<div className="text-xs text-slate-500 mt-1 pl-6">Tomador: {load.tomador}</div>)}
+                    <div className="flex flex-col gap-1 mt-2 pl-6">
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-indigo-500"></div><span className="text-slate-600">{load.origin}</span></div>
+                      {load.destinations.map((dest, index) => (
+                        <React.Fragment key={index}>
+                          <div className="border-l border-slate-300 h-3 ml-1 my-0.5"></div>
+                          <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-slate-400"></div><span className="text-slate-600">{dest} - <span className="font-medium text-emerald-700">{(load.destination_values?.[index] || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></span></div>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{load.driver}</span>
+                      {fleetInfo && (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          fleetInfo.ownershiptype === 'Frota' 
+                          ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                          : 'bg-orange-50 text-orange-700 border-orange-200'
+                        }`}>
+                          {fleetInfo.ownershiptype}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">{load.vehicletype} • {load.truckplate}</div>
+                  </td>
+                  <td className="px-6 py-4 align-top text-right">
+                    <div className="flex items-center justify-end gap-1 text-slate-900 font-medium"><DollarSign size={14} className="text-slate-400" />{load.companyvalue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                    <div className="flex items-center justify-end gap-1 text-xs text-slate-500 mt-1"><Weight size={12} />{(load.weight / 1000).toFixed(1)}t</div>
+                  </td>
+                  <td className="px-6 py-4 align-top text-center"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(load.status)}`}>{load.status}</span></td>
+                  <td className="px-6 py-4 align-top text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <button onClick={() => openModalForEdit(load)} className="text-slate-400 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar Carga"><Pencil size={18} /></button>
+                      <button onClick={() => handleDelete(load.id, `#${load.numeric_id}`)} className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Excluir Carga"><Trash2 size={18} /></button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
         {filteredLoads.length === 0 && (<div className="flex flex-col items-center justify-center h-48 text-slate-400"><Search size={48} className="mb-4 opacity-20" /><p>Nenhuma carga encontrada com os filtros atuais.</p></div>)}
