@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Load, LoadStatus, FleetRecord, Client } from '../types';
 import { Search, Filter, Calendar, DollarSign, Weight, Plus, X, Save, Trash2, Download, Pencil, Building2, MinusCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -20,7 +20,8 @@ const emptyForm: Partial<Load> = {
   client: '',
   tomador: '',
   origin: '',
-  destinations: [''], // Alterado para array
+  destinations: [''],
+  destination_values: [0],
   driver: '',
   vehicletype: '',
   truckplate: '',
@@ -48,6 +49,13 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
   const [formData, setFormData] = useState<Partial<Load>>(emptyForm);
   
   const [observationHistory, addObservation] = useInputHistory('observation');
+
+  useEffect(() => {
+    const totalCompanyValue = formData.destination_values?.reduce((sum, value) => sum + (value || 0), 0) || 0;
+    if (totalCompanyValue !== formData.companyvalue) {
+      setFormData(prev => ({ ...prev, companyvalue: totalCompanyValue }));
+    }
+  }, [formData.destination_values]);
 
   const handleDriverChange = (driverName: string) => {
     const selectedFleetRecord = fleet.find(f => f.drivername === driverName);
@@ -128,6 +136,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
         tomador: formData.tomador || '',
         origin: formData.origin || '',
         destinations: finalDestinations,
+        destination_values: formData.destination_values || [],
         driver: formData.driver || '',
         vehicletype: formData.vehicletype || '',
         truckplate: formData.truckplate || '',
@@ -201,15 +210,27 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
     newDestinations[index] = value;
     setFormData({ ...formData, destinations: newDestinations });
   };
+  
+  const handleDestinationValueChange = (value: string, index: number) => {
+    const newValues = [...(formData.destination_values || [])];
+    const numericString = value.replace(/\D/g, '');
+    newValues[index] = numericString === '' ? 0 : parseFloat(numericString) / 100;
+    setFormData({ ...formData, destination_values: newValues });
+  };
 
   const addDestination = () => {
-    setFormData({ ...formData, destinations: [...(formData.destinations || []), ''] });
+    setFormData({ 
+      ...formData, 
+      destinations: [...(formData.destinations || []), ''],
+      destination_values: [...(formData.destination_values || []), 0]
+    });
   };
 
   const removeDestination = (index: number) => {
     if (formData.destinations && formData.destinations.length > 1) {
       const newDestinations = formData.destinations.filter((_, i) => i !== index);
-      setFormData({ ...formData, destinations: newDestinations });
+      const newValues = formData.destination_values?.filter((_, i) => i !== index);
+      setFormData({ ...formData, destinations: newDestinations, destination_values: newValues });
     }
   };
 
@@ -264,7 +285,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                     {load.destinations.map((dest, index) => (
                       <React.Fragment key={index}>
                         <div className="border-l border-slate-300 h-3 ml-1 my-0.5"></div>
-                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-slate-400"></div><span className="text-slate-600">{dest}</span></div>
+                        <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-slate-400"></div><span className="text-slate-600">{dest} - <span className="font-medium text-emerald-700">{(load.destination_values?.[index] || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></span></div>
                       </React.Fragment>
                     ))}
                   </div>
@@ -313,10 +334,11 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                    <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Rota e Veículo</h4>
                    <div><label className="block text-sm font-medium text-slate-700 mb-1">Origem</label><AutocompleteInput value={formData.origin || ''} onChange={value => setFormData({ ...formData, origin: value })} suggestions={BRAZILIAN_CITIES} placeholder="Cidade, UF" /></div>
                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-slate-700">Destinos</label>
+                      <label className="block text-sm font-medium text-slate-700">Destinos e Valores</label>
                       {formData.destinations?.map((dest, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <AutocompleteInput value={dest} onChange={value => handleDestinationChange(value, index)} suggestions={BRAZILIAN_CITIES} placeholder={`Destino ${index + 1}`} />
+                          <div className="relative w-32"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-6 p-2 border border-slate-200 rounded-lg text-sm" placeholder="0,00" value={(formData.destination_values?.[index] || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})} onChange={e => handleDestinationValueChange(e.target.value, index)} /></div>
                           {formData.destinations && formData.destinations.length > 1 && (<button onClick={() => removeDestination(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-full"><MinusCircle size={18} /></button>)}
                         </div>
                       ))}
@@ -335,7 +357,7 @@ export const LoadList: React.FC<LoadListProps> = ({ loads, fleet, clients, onAdd
                  <div className="space-y-4">
                    <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2">Financeiro</h4>
                    <div className="grid grid-cols-2 gap-4">
-                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Valor Empresa</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00" value={(formData.companyvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'companyvalue', true)} /></div></div>
+                      <div><label className="block text-sm font-medium text-slate-700 mb-1">Valor Empresa (Total)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm bg-slate-100 text-slate-500" readOnly value={(formData.companyvalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} /></div></div>
                       <div><label className="block text-sm font-medium text-slate-700 mb-1">Valor Motorista</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">R$</span><input type="text" className="w-full pl-8 p-2 border border-slate-200 rounded-lg text-sm" placeholder="R$ 0,00" value={(formData.drivervalue || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} onChange={e => handleNumericChange(e, 'drivervalue', true)} /></div></div>
                    </div>
                     <div className="grid grid-cols-2 gap-4">
