@@ -4,7 +4,7 @@ import {
   PieChart, Pie, Cell, ComposedChart, Line, AreaChart, Area, Legend, LabelList
 } from 'recharts';
 import { Load, LoadStatus, FleetRecord } from '../types';
-import { TrendingUp, AlertTriangle, CheckCircle, Package, DollarSign, Target, Users, RefreshCw } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, Package, DollarSign, Target, Users, RefreshCw, Check, Clock } from 'lucide-react';
 
 // --- Helper Functions for Formatting ---
 const formatCurrency = (value: number) => 
@@ -32,7 +32,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   };
 
   // --- Dynamic Calculations ---
-  const referenceDate = new Date(); // CORREÇÃO: Usar a data atual
+  const referenceDate = new Date();
   const currentMonth = referenceDate.getMonth();
   const currentYear = referenceDate.getFullYear();
 
@@ -46,6 +46,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
   const delayedLoads = loads.filter(l => l.status === LoadStatus.DELAYED).length;
   const completedLoads = currentMonthLoads.filter(l => l.status === LoadStatus.DELIVERED).length;
   const percentReached = monthlyGoal > 0 ? (totalRevenue / monthlyGoal) * 100 : 0;
+
+  // --- OTIF Calculation ---
+  const deliveredLoads = loads.filter(l => l.status === LoadStatus.DELIVERED && l.deliverydate && l.forecastdate);
+  const onTimeDeliveries = deliveredLoads.filter(l => new Date(l.deliverydate!) <= new Date(l.forecastdate)).length;
+  const delayedDeliveries = deliveredLoads.filter(l => new Date(l.deliverydate!) > new Date(l.forecastdate));
+  const delayedDeliveriesCount = delayedDeliveries.length;
+  const totalDelivered = deliveredLoads.length;
+  const otifRate = totalDelivered > 0 ? (onTimeDeliveries / totalDelivered) * 100 : 100;
+  const otifData = [
+    { name: 'No Prazo', value: onTimeDeliveries },
+    { name: 'Atrasado', value: delayedDeliveriesCount },
+  ];
+  const OTIF_COLORS = ['#10b981', '#ef4444']; // Emerald, Red
 
   // --- Report 1: Fleet vs Third Party Load Count ---
   const loadsByOwnership = loads.reduce((acc, load) => {
@@ -298,7 +311,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
            
-           {/* 4. Top Clients (Horizontal Bar) */}
+           {/* 4. OTIF Chart and Justifications */}
+           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+              <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Clock size={20} className="text-indigo-600"/>
+                  OTIF - Entregas no Prazo
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="h-[250px] w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={otifData} cx="50%" cy="50%" innerRadius={70} outerRadius={90} paddingAngle={5} dataKey="value">
+                        {otifData.map((entry, index) => (<Cell key={`cell-${index}`} fill={OTIF_COLORS[index % OTIF_COLORS.length]} />))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => [`${value} Entregas`, 'Quantidade']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-4xl font-bold text-emerald-600">{otifRate.toFixed(0)}%</span>
+                    <p className="text-sm font-medium text-slate-500">On-Time</p>
+                  </div>
+                </div>
+                <div className="max-h-[250px] overflow-y-auto pr-2">
+                  <h4 className="font-semibold text-slate-700 mb-3">Justificativas de Atraso</h4>
+                  {delayedDeliveries.length > 0 ? (
+                    <div className="space-y-3">
+                      {delayedDeliveries.map(load => (
+                        <div key={load.id} className="flex items-start gap-3 p-3 bg-red-50/50 border border-red-100 rounded-lg">
+                          <AlertTriangle size={20} className="text-red-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-bold text-sm text-slate-800">Carga #{load.numeric_id}</p>
+                            <p className="text-xs text-slate-600">{load.observation || 'Sem justificativa registrada.'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center h-full bg-emerald-50/50 border border-emerald-100 rounded-lg p-4">
+                      <CheckCircle size={32} className="text-emerald-500 mb-2" />
+                      <p className="font-semibold text-sm text-emerald-800">Nenhuma entrega atrasada!</p>
+                      <p className="text-xs text-emerald-700">Ótimo trabalho da equipe.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+           </div>
+
+           {/* 5. Top Clients (Horizontal Bar) */}
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
               <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                   <DollarSign size={20} className="text-indigo-600"/>
@@ -327,41 +386,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ loads, fleet }) => {
                   </ResponsiveContainer>
               </div>
            </div>
-
-           {/* 5. Monthly Variation Area Chart */}
-           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
-              <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                      <TrendingUp size={20} className="text-indigo-600"/>
-                      Variação Mensal (Semanal)
-                  </h3>
-                   <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full font-medium">
-                      <TrendingUp size={14} />
-                      +12.5% vs mês anterior
-                   </div>
-              </div>
-              <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={variationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                          <defs>
-                              <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                              </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} tickFormatter={(val) => formatShortCurrency(val)} />
-                          <Tooltip 
-                              formatter={(value: number) => [formatCurrency(value), 'Receita']}
-                              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          />
-                          <Area type="monotone" dataKey="valor" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValor)" />
-                      </AreaChart>
-                  </ResponsiveContainer>
-              </div>
-           </div>
-
         </div>
       </div>
     </div>
