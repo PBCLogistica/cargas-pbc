@@ -92,7 +92,27 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                 <h3 className="font-semibold text-slate-700">Rota</h3>
                 <dl className="text-sm space-y-2">
                   <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-indigo-500"/>Origem</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.origin}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.destinations.join(', ')}</dd></div>
+                  
+                  {selectedLoad.destinations.length > 1 ? (
+                    <div>
+                      <dt className="text-slate-500 flex items-center gap-2 mb-2"><MapPin size={14} className="text-red-500"/>Destinos Múltiplos</dt>
+                      <dd className="font-medium text-slate-800 text-right space-y-1 pl-6">
+                        {selectedLoad.destinations.map((dest, index) => (
+                          <div key={index} className="flex justify-between items-center p-2 bg-slate-50 rounded-md border border-slate-100">
+                            <span className="text-slate-600">{dest}</span>
+                            <span className="font-bold text-emerald-700">
+                              {formatCurrency(selectedLoad.destination_values?.[index] || 0)}
+                            </span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt>
+                      <dd className="font-medium text-slate-800 text-right">{selectedLoad.destinations[0]}</dd>
+                    </div>
+                  )}
                 </dl>
               </div>
             </div>
