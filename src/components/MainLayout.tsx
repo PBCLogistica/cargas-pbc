@@ -90,7 +90,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ supabase, user }) => {
 
   // --- CRUD Handlers ---
 
-  const handleAddLoad = async (newLoad: Omit<Load, 'id'>) => {
+  const handleAddLoad = async (newLoad: Omit<Load, 'id' | 'numeric_id'>) => {
     const loadWithMeta = { ...newLoad, id: uuidv4(), updated_by: user.email };
     const { data, error } = await supabase.from('loads').insert(loadWithMeta).select().single();
     if (error) {

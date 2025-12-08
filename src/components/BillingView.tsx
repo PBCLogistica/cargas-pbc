@@ -53,7 +53,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                 <span className="text-xs text-slate-500">{new Date(load.date).toLocaleDateString()}</span>
               </div>
               <p className="text-sm text-slate-600 truncate">{load.client}</p>
-              <p className="text-xs text-slate-400 truncate">{load.origin} → {load.destination}</p>
+              <p className="text-xs text-slate-400 truncate">{load.origin} → {load.destinations.join(', ')}</p>
             </button>
           ))}
         </div>
@@ -92,7 +92,32 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
                 <h3 className="font-semibold text-slate-700">Rota</h3>
                 <dl className="text-sm space-y-2">
                   <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-indigo-500"/>Origem</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.origin}</dd></div>
-                  <div className="flex justify-between"><dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt><dd className="font-medium text-slate-800 text-right">{selectedLoad.destination}</dd></div>
+                  
+                  {selectedLoad.destinations.length > 1 ? (
+                    <div>
+                      <dt className="text-slate-500 flex items-center gap-2 mb-2"><MapPin size={14} className="text-red-500"/>Destinos e Valores</dt>
+                      <dd className="font-medium text-slate-800 text-right space-y-2 pl-6">
+                        {selectedLoad.destinations.map((dest, index) => (
+                          <div key={index} className="p-3 bg-slate-50 rounded-md border border-slate-100">
+                            <div className="flex justify-between items-center font-bold text-slate-700">
+                              <span>{dest}</span>
+                              <span>{formatCurrency(selectedLoad.destination_values?.[index] || 0)}</span>
+                            </div>
+                            <div className="text-xs mt-2 space-y-1 text-slate-500">
+                                <div className="flex justify-between"><span>Motorista:</span><span>{formatCurrency(selectedLoad.driver_values?.[index] || 0)}</span></div>
+                                <div className="flex justify-between"><span>Pedágio:</span><span>{formatCurrency(selectedLoad.toll_values?.[index] || 0)}</span></div>
+                                <div className="flex justify-between"><span>Ad Valorem:</span><span>{formatCurrency(selectedLoad.advalorem_values?.[index] || 0)}</span></div>
+                            </div>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <dt className="text-slate-500 flex items-center gap-2"><MapPin size={14} className="text-red-500"/>Destino</dt>
+                      <dd className="font-medium text-slate-800 text-right">{selectedLoad.destinations[0]}</dd>
+                    </div>
+                  )}
                 </dl>
               </div>
             </div>
@@ -101,7 +126,7 @@ export const BillingView: React.FC<BillingViewProps> = ({ loads }) => {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
               <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <DollarSign size={20} className="text-emerald-600"/>
-                Composição de Valores
+                Composição de Valores Totais
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm"><span className="text-slate-600">Valor Bruto (Empresa)</span><span className="font-medium text-slate-900">{formatCurrency(selectedLoad.companyvalue)}</span></div>
